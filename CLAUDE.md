@@ -240,7 +240,8 @@ sitio—, se compila **sin firmar y sin ningún error**: antes de publicar, el t
 `a313609336f4f9ff` (`[Reflection.AssemblyName]::GetAssemblyName(<dll>).FullName`). El
 `InternalsVisibleTo` de los tests lleva la clave pública cuando se firma.
 
-**El release** lleva el APK, la DLL con su XML y la web publicada autocontenida en un solo
+**El release** lleva el APK, el paquete NuGet de la biblioteca (`dotnet pack
+dotnet/Capicua.ApiToSms.Cliente -c Release`; **no se publica en nuget.org**) y la web publicada autocontenida en un solo
 ejecutable (`-p:PublishSingleFile=true`), zip para `win-x64` y `.tar.gz` para `linux-x64` (el
 `.tar.gz` conserva el permiso de ejecución). Publicada, la web toma como raíz la carpeta del
 ejecutable. `conexion.json` está excluido del publish en el `.csproj`: lleva la clave en claro.
@@ -248,7 +249,7 @@ Todo se copia también a `C:\Proyectos\releases\SMS`, con su `README.md` al día
 
 | Proyecto | Qué es |
 |---|---|
-| `Capicua.ApiToSms.Cliente` | La biblioteca. `ClienteApiToSms` + `AddApiToSms`. Va al release como DLL con su XML (decisión I) |
+| `Capicua.ApiToSms.Cliente` | La biblioteca. `ClienteApiToSms` + `AddApiToSms`. Va al release como `.nupkg`, con el XML dentro (decisión I) |
 | `Capicua.ApiToSms.Pruebas.Web` | La web de pruebas. Solo `127.0.0.1:5080`; `conexion.json` lleva la clave en claro y está en `.gitignore`. Va al release autocontenida, `win-x64` y `linux-x64` |
 | `Capicua.ApiToSms.Cliente.Tests` | xUnit: protocolo con `ManejadorFalso`, *pinning* contra un Kestrel con TLS |
 

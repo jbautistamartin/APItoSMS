@@ -21,6 +21,16 @@ Computadora de la red local                     Teléfono con APItoSMS
 > llevan a otro sitio; esta recibe una petición y manda el SMS. Las dos pueden estar instaladas en
 > el mismo teléfono.
 
+**La 1.0.0 está publicada** y se descarga desde la
+[última release](https://github.com/jbautistamartin/APItoSMS/releases/latest): el APK para el
+teléfono, el paquete NuGet de la biblioteca C# y la web de pruebas para Windows y Linux. Se probó
+en un teléfono real (Xiaomi con HyperOS y SIM Telcel), con pruebas de resistencia incluidas: un
+lote de 50, media hora en Doze, reinicios con la cola llena y la wifi que se va y vuelve. Lo que
+cambia en cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
+
+No está en Google Play: `SEND_SMS` pertenece a un grupo de permisos restringido cuya publicación
+exige una declaración aprobada.
+
 ---
 
 ## Para qué sirve
@@ -151,10 +161,17 @@ Con inyección de dependencias, `builder.Services.AddApiToSms(o => { … })` reg
 y los `429` por ritmo, siempre con la misma `Idempotency-Key`, y convierte cada error de la API
 en una excepción (`ValidacionException`, `LimiteExcedidoException`…).
 
-La DLL (`Capicua.ApiToSms.Cliente.dll`, con su XML de documentación) va adjunta a cada release, junto al
-APK. Está firmada con nombre seguro: `PublicKeyToken=a313609336f4f9ff`. Usa
-`Microsoft.Extensions.Http` 10, que en un proyecto `net10.0` ya viene con ASP.NET Core o se añade
-desde NuGet.
+La biblioteca va adjunta a cada release como paquete NuGet,
+`Capicua.ApiToSms.Cliente.<versión>.nupkg`, con su XML de documentación dentro. **No está en
+nuget.org**: se descarga del release y se instala desde una carpeta local.
+
+```bash
+dotnet nuget add source C:\paquetes --name local    # una vez, la carpeta donde dejas el .nupkg
+dotnet add package Capicua.ApiToSms.Cliente
+```
+
+Está firmada con nombre seguro: `PublicKeyToken=a313609336f4f9ff`. Depende de
+`Microsoft.Extensions.Http` 10, que NuGet trae solo.
 
 ### PowerShell
 
