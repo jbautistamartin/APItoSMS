@@ -1,0 +1,20 @@
+# Finales de línea: el repositorio es LF y así se queda.
+#
+# Esto no es cosmético. Durante la fase 2 un par de reescrituras de ficheros hechas desde
+# Windows convirtieron LF en CRLF, y el resultado fue un `git diff` de 400 líneas en un
+# strings.xml donde solo habían cambiado tres: la diferencia real queda enterrada y la revisión
+# del cambio se vuelve imposible. Con `text=auto eol=lf`, Git normaliza al guardar en el índice
+# y el problema no puede repetirse.
+* text=auto eol=lf
+
+# gradlew.bat lo ejecuta cmd.exe, que necesita CRLF.
+*.bat text eol=crlf
+
+# Binarios: Git no debe tocarlos.
+*.jar binary
+*.jks binary
+*.keystore binary
+*.png binary
+*.webp binary
+*.ttf binary
+*.otf binary
