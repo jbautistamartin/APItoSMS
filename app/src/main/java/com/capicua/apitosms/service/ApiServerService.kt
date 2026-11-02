@@ -33,6 +33,8 @@ import com.capicua.apitosms.domain.cola.RegistroDeAuditoria
 import com.capicua.apitosms.domain.model.EstadoMensaje
 import com.capicua.apitosms.domain.model.LogEntry
 import com.capicua.apitosms.domain.model.LogTipo
+import com.capicua.apitosms.domain.red.Enlace
+import com.capicua.apitosms.domain.red.Enlaces
 import com.capicua.apitosms.domain.seguridad.BloqueoPorFallos
 import com.capicua.apitosms.domain.seguridad.ListaDeRedes
 import com.capicua.apitosms.data.repository.MensajeRepository
@@ -73,8 +75,15 @@ import javax.inject.Inject
  * - La exención de Doze sigue haciendo falta, para WorkManager.
  *
  * ## La red
- * Se ata a la IP wifi ([RedLocal]) y se reata si cambia. Sin wifi no escucha en nada: queda en
- * [EstadoServidor.Estado.EsperandoRed].
+ * Un [ServidorHttps] por cada sitio en el que escuchar ([Enlace]), nunca en `0.0.0.0`:
+ * - La IP wifi o Ethernet ([RedLocal.actual]), que se reata si cambia.
+ * - Si `escucharPorUsb`, la del anclaje de red USB ([RedLocal.anclajeUsb]). Android no avisa al
+ *   encenderlo ni al apagarlo, así que con la opción encendida se vuelve a mirar cada
+ *   [VIGILANCIA_USB_MS].
+ * - Si `escucharPorAdb`, `127.0.0.1`, para `adb forward`. No depende de ninguna red.
+ *
+ * Qué arrancar y qué parar lo decide [Enlaces.planificar], en Kotlin puro. Sin ningún enlace no
+ * escucha en nada: queda en [EstadoServidor.Estado.EsperandoRed].
  */
 @AndroidEntryPoint
 class ApiServerService : Service() {
@@ -90,15 +99,18 @@ class ApiServerService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val cambio = Mutex()
 
-    private var servidor: ServidorHttps? = null
-    private var direccionActual: InetAddress? = null
+    /** Un servidor por enlace. Solo se toca con [cambio] cogido. */
+    private val servidores = mutableMapOf<Enlace, ServidorHttps>()
+    /** El puerto con el que se arrancaron los de [servidores]. */
     private var puertoActual: Int? = null
+    /** Los enlaces cuyo fallo al arrancar ya está en el registro: no se repite cada pocos segundos. */
+    private val fallosAnotados = mutableSetOf<Enlace>()
     private var dejarDeObservarRed: () -> Unit = {}
     private var observacionConfig: Job? = null
+    private var vigilanciaUsb: Job? = null
 
     /** La configuración vigente, para el filtro de conexiones, que corre en el hilo del socket. */
     @Volatile private var config = AppConfig()
-    @Volatile private var subredActual: ListaDeRedes = ListaDeRedes(emptyList())
 
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
@@ -123,14 +135,20 @@ class ApiServerService : Service() {
 
     private fun arrancar() {
         adquirirLocks()
-        dejarDeObservarRed = redLocal.observar { scope.launch { atarA(it?.direccion, it?.subred) } }
+        dejarDeObservarRed = redLocal.observar { scope.launch { recalcular() } }
 
         observacionConfig = scope.launch {
             configDataStore.config.collect { nueva ->
                 val anterior = config
                 config = nueva
-                if (servidor != null && nueva.puerto != anterior.puerto) {
-                    reiniciar("puerto cambiado a ${nueva.puerto}")
+                when {
+                    nueva.puerto != anterior.puerto && puertoActual != null ->
+                        reiniciar("puerto cambiado a ${nueva.puerto}")
+                    nueva.escucharPorUsb != anterior.escucharPorUsb ||
+                        nueva.escucharPorAdb != anterior.escucharPorAdb -> {
+                        vigilarUsb(nueva.escucharPorUsb)
+                        recalcular()
+                    }
                 }
             }
         }
@@ -146,88 +164,126 @@ class ApiServerService : Service() {
         }
         scope.launch {
             config = configDataStore.config.first()
-            val interfaz = redLocal.actual()
-            atarA(interfaz?.direccion, interfaz?.subred)
-        }
-    }
-
-    /** Ata el servidor a [direccion], o lo para si es null. No hace nada si ya está ahí. */
-    private suspend fun atarA(direccion: InetAddress?, subred: com.capicua.apitosms.domain.seguridad.Red?) = cambio.withLock {
-        subredActual = ListaDeRedes(listOfNotNull(subred))
-        val puerto = config.puerto
-        if (direccion == direccionActual && puerto == puertoActual && servidor?.escuchando == true) return@withLock
-
-        servidor?.detener()
-        servidor = null
-        direccionActual = null
-        puertoActual = null
-
-        if (direccion == null) {
-            EstadoServidor.cambiar(EstadoServidor.Estado.EsperandoRed)
-            anotar("Sin wifi: el servidor espera a que vuelva la red local")
-            return@withLock
-        }
-
-        try {
-            val nuevo = ServidorHttps(
-                direccion = direccion,
-                puerto = puerto,
-                sslContext = certificado.sslContext().also { anotarCertificadoSiNuevo() },
-                manejador = api,
-                filtro = ::admitirConexion,
-                alFallar = { Timber.e(it, "ServidorHttps") },
-                alCaer = { scope.launch { reatarTrasCaida() } }
-            )
-            nuevo.iniciar()
-            servidor = nuevo
-            direccionActual = direccion
-            puertoActual = puerto
-            val ip = direccion.hostAddress ?: "?"
-            EstadoServidor.cambiar(EstadoServidor.Estado.Escuchando(ip, puerto))
-            anotar("Servidor escuchando en https://$ip:$puerto")
-        } catch (e: Exception) {
-            Timber.e(e, "ApiServerService: no se pudo arrancar el servidor")
-            val motivo = "no se pudo escuchar en el puerto $puerto: ${e.message}"
-            EstadoServidor.cambiar(EstadoServidor.Estado.Error(motivo))
-            anotar("Error del servidor: $motivo")
+            vigilarUsb(config.escucharPorUsb)
+            recalcular()
         }
     }
 
     /**
-     * El socket murió sin que se parase: casi siempre, la wifi se fue y se llevó la IP. Se espera
-     * un poco a que [RedLocal] lo refleje y se ata a lo que haya; si no hay red local, queda
-     * esperándola, y el aviso de [RedLocal.observar] lo atará cuando vuelva.
+     * Con la opción del anclaje USB encendida, vuelve a mirar cada [VIGILANCIA_USB_MS] si el
+     * anclaje apareció o desapareció: Android no avisa. Mirar es barato (leer las interfaces), y
+     * [recalcular] no toca nada si nada cambió.
      */
-    private suspend fun reatarTrasCaida() {
-        anotar("El servidor dejó de escuchar: se vuelve a atar a la red local")
+    @Synchronized
+    private fun vigilarUsb(activa: Boolean) {
+        if (!activa) {
+            vigilanciaUsb?.cancel()
+            vigilanciaUsb = null
+            return
+        }
+        if (vigilanciaUsb?.isActive == true) return
+        vigilanciaUsb = scope.launch {
+            while (true) {
+                delay(VIGILANCIA_USB_MS)
+                recalcular()
+            }
+        }
+    }
+
+    /**
+     * Pone los servidores de acuerdo con lo que hay ahora: arranca los enlaces nuevos, para los que
+     * ya no están y vuelve a arrancar los que murieron solos. No hace nada si nada cambió.
+     */
+    private suspend fun recalcular() = cambio.withLock {
+        val c = config
+        val deseados = Enlaces.deseados(
+            local = redLocal.actual(),
+            usb = if (c.escucharPorUsb) redLocal.anclajeUsb() else null,
+            escucharPorUsb = c.escucharPorUsb,
+            escucharPorAdb = c.escucharPorAdb
+        )
+        val vivos = servidores.filterValues { it.escuchando }.keys
+        val plan = Enlaces.planificar(servidores.keys, vivos, deseados)
+        if (plan.vacio && EstadoServidor.estado.value !is EstadoServidor.Estado.Detenido) return@withLock
+
+        for (enlace in plan.parar) {
+            servidores.remove(enlace)?.detener()
+            if (enlace !in deseados) anotar("Deja de escuchar por ${enlace.tipo.etiqueta} (${enlace.ip})")
+        }
+        fallosAnotados.retainAll(deseados.toSet())
+
+        val errores = mutableListOf<String>()
+        for (enlace in plan.arrancar) {
+            try {
+                val nuevo = ServidorHttps(
+                    direccion = enlace.direccion,
+                    puerto = c.puerto,
+                    sslContext = certificado.sslContext().also { anotarCertificadoSiNuevo() },
+                    manejador = api,
+                    filtro = { ip -> admitirConexion(ip, enlace) },
+                    alFallar = { Timber.e(it, "ServidorHttps") },
+                    alCaer = { scope.launch { reatarTrasCaida(enlace) } }
+                )
+                nuevo.iniciar()
+                servidores[enlace] = nuevo
+                fallosAnotados.remove(enlace)
+                anotar("Servidor escuchando en https://${enlace.ip}:${c.puerto} (${enlace.tipo.etiqueta})")
+            } catch (e: Exception) {
+                Timber.e(e, "ApiServerService: no se pudo escuchar por ${enlace.tipo.etiqueta}")
+                val motivo = "no se pudo escuchar en ${enlace.ip}:${c.puerto} (${enlace.tipo.etiqueta}): ${e.message}"
+                errores += motivo
+                if (fallosAnotados.add(enlace)) anotar("Error del servidor: $motivo")
+            }
+        }
+        puertoActual = c.puerto
+        publicarEstado(deseados, c.puerto, errores)
+    }
+
+    private suspend fun publicarEstado(deseados: List<Enlace>, puerto: Int, errores: List<String>) {
+        val puntos = deseados.filter { it in servidores }
+            .map { EstadoServidor.Punto(it.tipo, it.ip, puerto) }
+        val anterior = EstadoServidor.estado.value
+        val nuevo = when {
+            puntos.isNotEmpty() -> EstadoServidor.Estado.Escuchando(puntos)
+            errores.isNotEmpty() -> EstadoServidor.Estado.Error(errores.joinToString("; "))
+            else -> EstadoServidor.Estado.EsperandoRed
+        }
+        EstadoServidor.cambiar(nuevo)
+        if (nuevo is EstadoServidor.Estado.EsperandoRed && anterior !is EstadoServidor.Estado.EsperandoRed) {
+            anotar("Sin wifi ni cable: el servidor espera a que haya red local")
+        }
+    }
+
+    /**
+     * El socket de [enlace] murió sin que se parase: casi siempre, la wifi se fue y se llevó la IP,
+     * o se desenchufó el cable. Se espera un poco a que [RedLocal] lo refleje y se recalcula: si el
+     * enlace sigue ahí se vuelve a atar, y si no, se quita.
+     */
+    private suspend fun reatarTrasCaida(enlace: Enlace) {
+        anotar("El servidor dejó de escuchar por ${enlace.tipo.etiqueta}: se vuelve a mirar la red")
         delay(ESPERA_TRAS_CAIDA_MS)
-        val interfaz = redLocal.actual()
-        atarA(interfaz?.direccion, interfaz?.subred)
+        recalcular()
     }
 
     private suspend fun reiniciar(motivo: String) {
         Timber.i("ApiServerService: reinicio ($motivo)")
         cambio.withLock {
-            servidor?.detener()
-            servidor = null
-            direccionActual = null
+            servidores.values.forEach { it.detener() }
+            servidores.clear()
             puertoActual = null
         }
-        val interfaz = redLocal.actual()
-        atarA(interfaz?.direccion, interfaz?.subred)
+        recalcular()
     }
 
     /**
-     * El filtro de cada conexión, **antes del saludo TLS**: una IP bloqueada por fuerza bruta, o
-     * fuera de las redes permitidas, se cierra sin más. Vacía la lista global, vale la subred
-     * wifi actual.
+     * El filtro de cada conexión, **antes del saludo TLS**: una IP bloqueada por fuerza bruta se
+     * cierra sin más, y el resto lo decide [Enlaces.admitir] según por dónde entró.
      */
-    private fun admitirConexion(ip: InetAddress): Boolean {
+    private fun admitirConexion(ip: InetAddress, enlace: Enlace): Boolean {
         val texto = ip.hostAddress ?: return false
         if (bloqueo.estaBloqueada(texto)) return false
         val (globales, _) = ListaDeRedes.leer(ListaDeRedes.separar(config.redesPermitidas))
-        val permitidas = if (globales.vacia) subredActual else globales
-        return permitidas.contiene(ip)
+        return Enlaces.admitir(ip, enlace, globales)
     }
 
     /** La primera vez que se sirve, el certificado se genera: queda anotado su origen. */
@@ -266,8 +322,9 @@ class ApiServerService : Service() {
 
     override fun onDestroy() {
         dejarDeObservarRed()
-        servidor?.detener()
-        servidor = null
+        vigilarUsb(false)
+        servidores.values.forEach { it.detener() }
+        servidores.clear()
         liberarLocks()
         EstadoServidor.cambiar(EstadoServidor.Estado.Detenido)
         val registroFinal = registro
@@ -282,8 +339,9 @@ class ApiServerService : Service() {
 
     private fun textoDeEstado(enCola: Int? = null): String {
         val base = when (val e = EstadoServidor.estado.value) {
-            is EstadoServidor.Estado.Escuchando -> e.url
-            EstadoServidor.Estado.EsperandoRed -> "Sin wifi: esperando a la red local"
+            is EstadoServidor.Estado.Escuchando ->
+                if (e.puntos.size == 1) e.url else "${e.url} (+${e.puntos.size - 1})"
+            EstadoServidor.Estado.EsperandoRed -> "Sin wifi ni cable: esperando a la red local"
             is EstadoServidor.Estado.Error -> "Error: ${e.motivo}"
             EstadoServidor.Estado.Detenido -> "Arrancando…"
         }
@@ -335,6 +393,7 @@ class ApiServerService : Service() {
 
     companion object {
         private const val ESPERA_TRAS_CAIDA_MS = 2_000L
+        private const val VIGILANCIA_USB_MS = 3_000L
         private const val ACCION_REINICIAR = "${BuildConfig.APPLICATION_ID}.REINICIAR_SERVIDOR"
 
         fun iniciar(context: Context) {

@@ -73,7 +73,10 @@ object CopiaDeAjustes {
         val informesDeEntrega: Boolean,
         val retencionTextosDias: Int,
         val retencionMensajesDias: Int,
-        val retencionRegistroDias: Int
+        val retencionRegistroDias: Int,
+        /** Posteriores a la 1.0.0: una copia de entonces no los trae, y quedan apagados. */
+        val escucharPorUsb: Boolean = false,
+        val escucharPorAdb: Boolean = false
     )
 
     @Serializable
@@ -150,7 +153,9 @@ object CopiaDeAjustes {
                 informesDeEntrega = config.informesDeEntrega,
                 retencionTextosDias = config.retencionTextosDias,
                 retencionMensajesDias = config.retencionMensajesDias,
-                retencionRegistroDias = config.retencionRegistroDias
+                retencionRegistroDias = config.retencionRegistroDias,
+                escucharPorUsb = config.escucharPorUsb,
+                escucharPorAdb = config.escucharPorAdb
             ),
             claves = claves.map { c ->
                 Clave(
@@ -242,7 +247,9 @@ object CopiaDeAjustes {
                     // Como en Ajustes: el mensaje no se borra antes que su texto.
                     retencionMensajesDias = a.retencionMensajesDias.coerceIn(1, 3650)
                         .coerceAtLeast(a.retencionTextosDias.coerceIn(1, 3650)),
-                    retencionRegistroDias = a.retencionRegistroDias.coerceIn(1, 3650)
+                    retencionRegistroDias = a.retencionRegistroDias.coerceIn(1, 3650),
+                    escucharPorUsb = a.escucharPorUsb,
+                    escucharPorAdb = a.escucharPorAdb
                 )
             },
             claves = claves,

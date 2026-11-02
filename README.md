@@ -21,12 +21,13 @@ Computadora de la red local                     Teléfono con APItoSMS
 > llevan a otro sitio; esta recibe una petición y manda el SMS. Las dos pueden estar instaladas en
 > el mismo teléfono.
 
-**La 1.0.0 está publicada** y se descarga desde la
+**La 1.1.0 está publicada** y se descarga desde la
 [última release](https://github.com/jbautistamartin/APItoSMS/releases/latest): el APK para el
 teléfono, el paquete NuGet de la biblioteca C# y la web de pruebas para Windows y Linux. Se probó
 en un teléfono real (Xiaomi con HyperOS y SIM Telcel), con pruebas de resistencia incluidas: un
-lote de 50, media hora en Doze, reinicios con la cola llena y la wifi que se va y vuelve. Lo que
-cambia en cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
+lote de 50, media hora en Doze, reinicios con la cola llena y la wifi que se va y vuelve. La 1.1.0
+añade la conexión por cable, sin wifi: [anclaje de red USB y `adb forward`](#sin-wifi-por-cable).
+Lo que cambia en cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
 
 No está en Google Play: `SEND_SMS` pertenece a un grupo de permisos restringido cuya publicación
 exige una declaración aprobada.
@@ -40,8 +41,10 @@ SMS**: basta un teléfono Android con una SIM y una wifi. Está pensada para **c
 día, no para cientos de miles**: el operador y Android limitan el ritmo, y un teléfono no compite
 con un agregador.
 
-No es un servicio expuesto a internet. El servidor escucha **solo en la wifi**, nunca en los datos
-móviles, y por defecto solo admite conexiones de la misma subred.
+No es un servicio expuesto a internet. El servidor escucha **solo en la wifi** (o en un adaptador
+Ethernet), nunca en los datos móviles, y por defecto solo admite conexiones de la misma subred.
+Si no hay wifi, puede escuchar también **por el cable USB** de una sola computadora: ver
+[Sin wifi: por cable](#sin-wifi-por-cable).
 
 ---
 
@@ -205,6 +208,123 @@ contraseña puede hacerse pasar por el teléfono.
 
 Regenerar o importar otro certificado cambia la huella **a propósito**: todos los clientes que
 fijaban la anterior dejan de conectar hasta que se les pone la nueva.
+
+---
+
+## Sin wifi: por cable
+
+Dos opciones en **Ajustes → Conexión**, apagadas por defecto, para un teléfono conectado por USB a
+una sola computadora. Pueden convivir entre sí y con la wifi: el Panel enseña cada dirección con
+por dónde llega.
+
+| | Anclaje de red USB | adb |
+|---|---|---|
+| **Interruptor** | «Escuchar también por anclaje USB» | «Escuchar también para adb» |
+| **En el teléfono** | Ajustes de Android → Zona wifi y anclaje → **Anclaje de red USB**, cada vez que se conecta el cable: Android lo apaga al desenchufar | Opciones de desarrollador → **Depuración USB**, autorizando la computadora con «Permitir siempre» |
+| **En la computadora** | Nada: recibe IP del teléfono por DHCP (Linux lo reconoce solo; Windows 10/11 instala el controlador RNDIS) | `adb` y `adb forward tcp:8443 tcp:8443`, que se pierde al desconectar el cable o reiniciar: conviene un servicio que lo relance |
+| **URL en el cliente** | La que enseña el Panel, como `https://192.168.x.x:8443` | `https://127.0.0.1:8443` |
+| **Quién entra** | Solo la subred del cable. La lista de redes de Ajustes no se aplica | Solo `127.0.0.1` |
+| **Inconveniente** | Si el teléfono tiene datos móviles, la computadora sale a internet por la SIM: el Panel lo avisa | La depuración USB da control total del teléfono a quien lo conecte. Para pruebas, o una computadora de total confianza |
+
+El certificado no hay que cambiarlo: los clientes fijan la **huella**, que no depende de la IP
+por la que se llega.
+
+**Con el anclaje, que el teléfono no sea la salida a internet de la computadora.** Apaga los
+datos móviles (los SMS siguen funcionando: no van por datos) o, en la computadora, marca esa
+conexión para que nunca sea la ruta por defecto: en Linux, «Usar esta conexión solo para los
+recursos de su red» (`nmcli connection modify <conexión> ipv4.never-default yes`); en Windows,
+una métrica alta en las opciones avanzadas de IPv4 del adaptador «Remote NDIS».
+
+**Con adb, todas las peticiones llegan como `127.0.0.1`**: una clave limitada por redes necesita
+`127.0.0.1` en su lista, el bloqueo por fuerza bruta es uno para todos los clientes de esa
+computadora y el registro no distingue entre ellos.
+
+### Probar con `adb forward`, paso a paso
+
+**1. El teléfono.** Activa las opciones de desarrollador (Ajustes → Sobre el teléfono → toca siete
+veces el número de compilación; en HyperOS, la «Versión de HyperOS») y, dentro de ellas, la
+**Depuración USB**. En Xiaomi conviene desactivar también la caducidad de las autorizaciones de
+depuración: si no, a los 7 días sin usarla hay que volver a autorizar la computadora.
+
+**2. La computadora.** Instala `adb`: en Linux, `sudo apt install adb`; en Windows, las
+[*platform-tools* de Google](https://developer.android.com/tools/releases/platform-tools), con su
+carpeta en el `PATH`. Conecta el cable y acepta en el teléfono «¿Permitir depuración USB?» con
+**«Permitir siempre desde este ordenador»**.
+
+```bash
+adb devices          # tiene que salir el teléfono como «device», no «unauthorized»
+```
+
+**3. La app.** Ajustes → Conexión → **«Escuchar también para adb»** → Guardar, y el servidor
+encendido. El Panel enseña la dirección nueva: `https://127.0.0.1:8443 · adb`.
+
+**4. El túnel.** Lleva el puerto 8443 de la computadora al 8443 del teléfono:
+
+```bash
+adb forward tcp:8443 tcp:8443
+adb forward --list   # D6CM…  tcp:8443 tcp:8443
+```
+
+El primer puerto es el de la computadora y el segundo, el de la app. Si en la computadora el 8443
+ya está ocupado, usa otro: `adb forward tcp:9443 tcp:8443` y la URL será `https://127.0.0.1:9443`.
+Con varios teléfonos conectados, uno por puerto y con su número de serie:
+`adb -s <serie> forward tcp:9444 tcp:8443`.
+
+**5. Comprobar que llega.** Sin clave, la API tiene que contestar `401`:
+
+```bash
+curl -sk -o /dev/null -w "%{http_code}\n" https://127.0.0.1:8443/api/v1/cola     # → 401
+
+# La huella tiene que ser la del Panel:
+echo | openssl s_client -connect 127.0.0.1:8443 2>/dev/null | openssl x509 -noout -fingerprint -sha256
+```
+
+Un `401` quiere decir que la conexión entró por el cable, pasó el filtro y completó el saludo TLS.
+Un `000` o «Connection refused» quiere decir que no hay túnel (ver el paso 8).
+
+**6. Usarla.** Todo es igual que por la wifi, cambiando la URL por `https://127.0.0.1:8443`:
+
+- **curl:** `URL=https://127.0.0.1:8443` en el ejemplo de [Usar la API](#usar-la-api), con la
+  misma clave y la misma huella.
+- **C#:** `Url = new Uri("https://127.0.0.1:8443")`. La huella no cambia: el *pinning* no mira el
+  nombre ni la IP.
+- **La web de pruebas:** en su página, URL `https://127.0.0.1:8443`. Ella escucha en el 5080, así
+  que no choca con el túnel.
+
+**7. Las claves.** Por adb, todas las peticiones llegan desde `127.0.0.1`. Una clave con redes
+permitidas necesita `127.0.0.1` en su lista, o dará `401`.
+
+**8. Si deja de contestar.** El túnel **se pierde** al desenchufar el cable, al reiniciar el
+teléfono, al reiniciar el servidor de `adb` y también al activar o desactivar el anclaje de red
+USB, que cambia el modo del puerto. Basta con volver a lanzarlo:
+
+```bash
+adb devices                       # ¿sigue conectado y autorizado?
+adb forward tcp:8443 tcp:8443
+```
+
+**9. Dejarlo fijo.** Para una computadora que va a usarlo siempre, un bucle que vuelve a abrir el
+túnel cada vez que el teléfono reaparece. Repetir el `forward` cuando ya existe no hace nada.
+
+```bash
+# Linux: ~/.config/systemd/user/apitosms-adb.service
+#   [Unit]
+#   Description=Túnel adb hacia APItoSMS
+#   [Service]
+#   ExecStart=/bin/sh -c 'while true; do adb wait-for-device; adb forward tcp:8443 tcp:8443; sleep 10; done'
+#   Restart=always
+#   [Install]
+#   WantedBy=default.target
+systemctl --user enable --now apitosms-adb
+```
+
+```powershell
+# Windows: una tarea programada «Al iniciar sesión» que ejecute
+powershell -WindowStyle Hidden -Command "while ($true) { adb wait-for-device; adb forward tcp:8443 tcp:8443 | Out-Null; Start-Sleep 10 }"
+```
+
+**10. Quitarlo.** `adb forward --remove tcp:8443`, apaga «Escuchar también para adb» y, si el
+teléfono ya no lo necesita para nada más, la Depuración USB.
 
 ---
 
