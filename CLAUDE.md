@@ -57,9 +57,12 @@ adb logcat -s "ServidorHttps" "ColaWorker" "SmsSender" "OrphanRescueWorker" "Api
 **Fases 1 a 9 del masterplan cerradas el 1 nov 2026; la 10, a medias.** En el teléfono (Xiaomi,
 HyperOS, Android 16, SIM Telcel) pasaron TLS con huella fijada, `401` uniforme, `422` por campo,
 idempotencia, lotes, pausa, cancelación, el bloqueo por fuerza bruta, la pantalla de Claves con
-`FLAG_SECURE` y SMS reales recibidos. Faltan las pruebas de resistencia (lote de 50, pantalla
-apagada, reinicio con cola, matar la app enviando, quitar la wifi) y la importación de un `.p12`
-de la CA de la empresa. La tabla, fila a fila, está en la fase 10.
+`FLAG_SECURE` y SMS reales recibidos. El 2 nov pasaron las de resistencia, con el APK de release:
+lote de 50, 30 min en Doze, reinicio con cola, matar la app enviando y quitar la wifi; dos de ellas
+destaparon fallos, ya arreglados (el socket muerto al caer la wifi y el huérfano que salía el
+último). **Tras reiniciar, el servidor no arranca hasta el primer desbloqueo**: la app no es
+*directBootAware*. Falta la importación de un `.p12` de la CA de la empresa. La tabla, fila a fila,
+está en la fase 10.
 
 **El repositorio es `github.com/jbautistamartin/APItoSMS`** (público, creado el 1 nov 2026 antes
 de la 1.0.0; decisión G). Hasta la release la rama por defecto es `develop`, porque `main` solo

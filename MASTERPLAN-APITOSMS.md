@@ -360,9 +360,9 @@ Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2
 |---|---|---|---|
 | 1 | Un SMS desde la web de pruebas | `ENVIADO`, y `ENTREGADO` si el operador lo informa | ✅ `ENVIADO` y recibido. Telcel no manda el informe (punto 2) |
 | 2 | Lote de 50 | Salen en orden, de uno en uno, con la pausa configurada | ✅ 2 nov: en orden, uno cada ~4,5 s (pausa de 3 s + envío), los 50 en 3 min 44 s |
-| 3 | Pantalla apagada 30 min y otro lote | La API contesta y la cola avanza (Doze, `WifiLock`) | ⏳ Pendiente |
+| 3 | Pantalla apagada 30 min y otro lote | La API contesta y la cola avanza (Doze, `WifiLock`) | ✅ 2 nov: 30 min con la pantalla apagada, la batería «desenchufada» (`dumpsys battery unplug`) y Doze profundo forzado; la API contestó en 0,36 s y el lote de 3 salió sin despertar la pantalla |
 | 4 | Reiniciar el teléfono con 20 en cola | Al volver, el servidor escucha y la cola sigue | ✅ 2 nov, con la cola pausada: los 20 siguen `EN_COLA` y la pausa se conserva. **El servidor no arranca hasta el primer desbloqueo** (la app no es *directBootAware* y Room vive en el almacenamiento cifrado); desbloqueado, escucha en ~20 s sin abrir la app |
-| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C | ⚠️ 2 nov, con `am crash` en el 11 de 50: se reenvió, pero **el último**, porque el rescate solo actúa sin pasada en marcha y la pasada relanzada siguió con el 12. Arreglado: cada pasada de `ColaWorker` empieza rescatando. Falta verlo en el teléfono |
+| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C | ⚠️ 2 nov, con `am crash` en el 11 de 50: se reenvió, pero **el último**, porque el rescate solo actúa sin pasada en marcha y la pasada relanzada siguió con el 12. Arreglado: cada pasada de `ColaWorker` empieza rescatando. ✅ Repetida en Doze con un lote de 3: el 2 se rescató y salió en su sitio, antes que el 3 (~27 s de hueco hasta que WorkManager relanzó la pasada) |
 | 6 | Mismo `Idempotency-Key` dos veces | Un solo SMS | ✅ `Idempotent-Replayed: true` |
 | 7 | Clave revocada, IP no permitida, prefijo no permitido | `401`, `403`, `422` | ✅ `401` uniforme y `422` por campo; `403` por IP, en tests |
 | 8 | 10 fallos de autenticación | IP bloqueada | ✅ Corte a nivel TCP; el botón del Panel la desbloquea |
@@ -370,6 +370,9 @@ Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2
 | 9b | Importar el `.p12` de la CA de la empresa | El servidor lo sirve y la huella del Panel coincide con la del certificado | ⏳ Pendiente: falta un `.p12` de esa CA |
 | 10 | Desactivar la wifi | El servidor deja de escuchar y no se ata a datos móviles | ✅ 2 nov, con la release: sin wifi no escucha en nada (tampoco en la IP de datos), y al volver se reata en ~5 s. **La primera vez no volvió**: Android destruye el socket al quitar la IP y `escuchando` seguía en `true`; arreglado en `ServidorHttps` (`alCaer`) |
 | 11 | Destino inexistente | `FALLIDO` con el error del operador, y la cola sigue | ⚠️ Fallo genérico del operador, visto por accidente (punto 2); **no se repite con números inventados** |
+
+Y la migración v1 → v2 (`ip_origen`) sobre la base del teléfono, con 84 mensajes: se leen todos, y
+uno nuevo, encolado con la cola pausada y cancelado, guarda la IP del PC.
 
 Y otras que no estaban en la tabla: pausa y reanudación por la API (tras arreglar el `411`),
 cancelación, la pantalla de Claves con `FLAG_SECURE` (la captura sale negra) y la credencial,
