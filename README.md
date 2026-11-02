@@ -152,7 +152,9 @@ y los `429` por ritmo, siempre con la misma `Idempotency-Key`, y convierte cada 
 en una excepción (`ValidacionException`, `LimiteExcedidoException`…).
 
 La DLL (`Capicua.ApiToSms.Cliente.dll`, con su XML de documentación) va adjunta a cada release, junto al
-APK.
+APK. Está firmada con nombre seguro: `PublicKeyToken=a313609336f4f9ff`. Usa
+`Microsoft.Extensions.Http` 10, que en un proyecto `net10.0` ya viene con ASP.NET Core o se añade
+desde NuGet.
 
 ### PowerShell
 
@@ -191,6 +193,10 @@ fijaban la anterior dejan de conectar hasta que se les pone la nueva.
 
 ## La web de pruebas
 
+Cada release la trae lista para usar, sin instalar .NET: `Capicua.ApiToSms.Pruebas.Web-<versión>-win-x64.zip`
+y `…-linux-x64.tar.gz`. Se descomprime y se ejecuta `Capicua.ApiToSms.Pruebas.Web`; luego se abre
+<http://127.0.0.1:5080>. `conexion.json` se crea junto al ejecutable. Desde el código:
+
 ```bash
 cd dotnet/Capicua.ApiToSms.Pruebas.Web
 dotnet run
@@ -208,13 +214,17 @@ reanuda la cola. Solo escucha en `127.0.0.1`: no tiene autenticación propia y m
 
 ```bash
 ./gradlew assembleDebug            # APK debug (com.capicua.apitosms.debug, convive con la release)
-./gradlew test                     # 88 tests JVM
+./gradlew test                     # 91 tests JVM
 ./gradlew assembleRelease          # → app/build/outputs/apk/release/apitosms-<versión>.apk
 
 cd dotnet
 dotnet test                        # 38 tests de la biblioteca
 dotnet build -c Release Capicua.ApiToSms.Cliente
+dotnet publish Capicua.ApiToSms.Pruebas.Web -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ```
+
+Los ensamblados se firman con nombre seguro si existe `../../Claves/capicua.snk` (fuera del
+repositorio, junto al almacén de los APK); sin ella se compilan sin firmar, sin ningún error.
 
 Gradle necesita el **JDK 25** (Temurin) y el SDK con la **plataforma 37**. La firma de release se
 configura en `local.properties`: ver [`CLAUDE.md`](CLAUDE.md).

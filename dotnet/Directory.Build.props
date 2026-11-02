@@ -15,4 +15,14 @@
     <RepositoryUrl>https://github.com/jbautistamartin/APItoSMS</RepositoryUrl>
     <Version>1.0.0</Version>
   </PropertyGroup>
+
+  <!-- Nombre seguro con la clave de la casa, la misma que SilentRunner. La clave vive fuera del
+       repositorio (SMS/Claves, junto al almacén de los APK) y nunca se publica con el código: sin
+       ella, como en un clon de otra persona, se compila sin firmar. -->
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\Claves\capicua.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly Condition="Exists('$(AssemblyOriginatorKeyFile)')">true</SignAssembly>
+    <!-- La pública (capicua.publickey), para InternalsVisibleTo entre ensamblados firmados. -->
+    <ClavePublicaCapicua>002400000480000014010000060200000024000052534131000800000100010075dbccb6f37576caee681b60af9f92adccee9817f0934bc2914caa43856860c1b949ec13d91b04bf1cb47f93dccfe59b311d6a4e74dfd0149a49efadf09711b1e631c2c63cc40dbf25defc35bdc552ba4f37cdbc5ad1001c1c4c780d9c5a060d6b00a762e97f1347a981c3ecbe641bb49a064495db80fc1a7b4b273ecbeac5540bb418443a6603c0822efa1184d1ef1cdb31efdf4daa1b96a55375155a81259f864e2315ffb908fa8e6903d3e31cd011fcecccece588b79d66737379977a230f9809c7eac1ef0d81425cbcd002bb605dbf635d36503c960fbf2f3a0bbd30b695cb3678de74d42c483627f0769f27e9210ea3d5a8cdd2fc106dc64fef7721f7c3</ClavePublicaCapicua>
+  </PropertyGroup>
 </Project>

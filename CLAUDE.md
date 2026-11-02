@@ -54,7 +54,7 @@ adb logcat -s "ServidorHttps" "ColaWorker" "SmsSender" "OrphanRescueWorker" "Api
 
 ## El estado
 
-**Fases 1 a 9 del masterplan cerradas el 1 nov 2026; la 10, a medias.** En el teléfono (Xiaomi,
+**La 1.0.0 está publicada (2 nov 2026).** Las diez fases del masterplan, cerradas salvo la prueba 9b. En el teléfono (Xiaomi,
 HyperOS, Android 16, SIM Telcel) pasaron TLS con huella fijada, `401` uniforme, `422` por campo,
 idempotencia, lotes, pausa, cancelación, el bloqueo por fuerza bruta, la pantalla de Claves con
 `FLAG_SECURE` y SMS reales recibidos. El 2 nov pasaron las de resistencia, con el APK de release:
@@ -64,11 +64,9 @@ destaparon fallos, ya arreglados (el socket muerto al caer la wifi y el huérfan
 *directBootAware*. Falta la importación de un `.p12` de la CA de la empresa. La tabla, fila a fila,
 está en la fase 10.
 
-**El repositorio es `github.com/jbautistamartin/APItoSMS`** (público, creado el 1 nov 2026 antes
-de la 1.0.0; decisión G). Hasta la release la rama por defecto es `develop`, porque `main` solo
-tiene el commit vacío de inicio; al publicar, `main` recibe el código y vuelve a serlo. Sin
-releases, el comprobador de actualizaciones no encuentra ninguna y no avisa. El trabajo va en
-`develop`.
+**El repositorio es `github.com/jbautistamartin/APItoSMS`** (público; decisión G). `main` es la
+rama por defecto y lleva lo publicado; el trabajo va en `develop` y pasa a `main` al publicar
+cada versión, como en las otras cinco.
 
 ## Arquitectura
 
@@ -235,6 +233,18 @@ cuatro líneas** con `APItoSMS para Android` en la primera; todo `.cs`, la misma
 
 Todo proyecto .NET empieza por **`Capicua.`**, el nombre de la empresa, en carpeta, ensamblado y
 *namespace*. Los tests no van al release.
+
+**Nombre seguro** con `SMS/Claves/capicua.snk`, la clave de la casa (la de SilentRunner), desde
+`Directory.Build.props`. Si el fichero no está —un clon en otra máquina, o el repo movido de
+sitio—, se compila **sin firmar y sin ningún error**: antes de publicar, el token tiene que ser
+`a313609336f4f9ff` (`[Reflection.AssemblyName]::GetAssemblyName(<dll>).FullName`). El
+`InternalsVisibleTo` de los tests lleva la clave pública cuando se firma.
+
+**El release** lleva el APK, la DLL con su XML y la web publicada autocontenida en un solo
+ejecutable (`-p:PublishSingleFile=true`), zip para `win-x64` y `.tar.gz` para `linux-x64` (el
+`.tar.gz` conserva el permiso de ejecución). Publicada, la web toma como raíz la carpeta del
+ejecutable. `conexion.json` está excluido del publish en el `.csproj`: lleva la clave en claro.
+Todo se copia también a `C:\Proyectos\releases\SMS`, con su `README.md` al día.
 
 | Proyecto | Qué es |
 |---|---|

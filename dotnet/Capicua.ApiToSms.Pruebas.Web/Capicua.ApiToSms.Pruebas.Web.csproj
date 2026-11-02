@@ -4,6 +4,10 @@
     <Description>Web de pruebas de APItoSMS: envía mensajes y lotes al teléfono con la biblioteca cliente y sigue su estado en vivo por Server-Sent Events.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Lleva la clave en claro: nunca va en un paquete publicado. -->
+    <Content Update="conexion.json" CopyToPublishDirectory="Never" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Capicua.ApiToSms.Cliente/Capicua.ApiToSms.Cliente.csproj" />
   </ItemGroup>
 </Project>

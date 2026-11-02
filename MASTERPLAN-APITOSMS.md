@@ -352,7 +352,7 @@ contra el teléfono.
   entrega. Retención y purga explicadas.
 - `CLAUDE.md` raíz de `C:\Proyectos\SMS`: la sexta fila de la tabla, el linaje y el color.
 
-### Fase 10 — Dispositivo real y release 1.0.0 · `[~]`
+### Fase 10 — Dispositivo real y release 1.0.0 · `[x]` (salvo la 9b)
 
 Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2026:
 
@@ -382,14 +382,15 @@ y las pestañas Mensajes y Registro.
 no enviar se hace con la cola pausada, **comprobando que la pausa se aplicó** antes de mandar
 nada.
 
-Y después, la publicación:
+Y después, la publicación, **hecha el 2 nov 2026**:
 
 1. ~~Crear `github.com/jbautistamartin/APItoSMS`~~ — hecho el 1 nov 2026, antes de la release
    (decisión G). Al publicar, `main` recibe el código y vuelve a ser la rama por defecto.
 2. El procedimiento de siempre: `CHANGELOG`, `assembleRelease`, huella del APK con `apksigner`.
-3. `dotnet build -c Release` de `Capicua.ApiToSms.Cliente`, y `dotnet publish -c Release -r <rid>
-   --self-contained` de `Capicua.ApiToSms.Pruebas.Web` para `win-x64` y `linux-x64`, cada una en su zip.
-4. `gh release create v1.0.0` con **el APK, la DLL y los dos zips de la web**.
+3. `dotnet build -c Release` de `Capicua.ApiToSms.Cliente`, firmada con nombre seguro
+   (`capicua.snk`, token `a313609336f4f9ff`), y `dotnet publish -c Release -r <rid> --self-contained`
+   de `Capicua.ApiToSms.Pruebas.Web`, en un solo ejecutable, para `win-x64` (zip) y `linux-x64` (`.tar.gz`).
+4. `gh release create v1.0.0` con **el APK, la DLL con su XML y los dos paquetes de la web**.
 5. Copiarlo también a `C:\Proyectos\releases\SMS` y poner al día su `README.md`.
 
 ---

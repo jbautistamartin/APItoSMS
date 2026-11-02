@@ -12,7 +12,7 @@ namespace Capicua.ApiToSms.Pruebas.Web;
 public sealed record DatosConexion(string? Url, string? Clave, string? Huella);
 
 /// <summary>
-/// La conexión con el teléfono, guardada en <c>conexion.json</c> junto al proyecto. Ese fichero
+/// La conexión con el teléfono, guardada en <c>conexion.json</c> junto al proyecto (o al ejecutable, publicada). Ese fichero
 /// lleva la clave de la API en claro y <b>no se versiona</b> (está en el <c>.gitignore</c>).
 /// </summary>
 public sealed class Conexion : IDisposable

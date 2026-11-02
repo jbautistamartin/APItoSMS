@@ -7,7 +7,14 @@ using System.Text.Json;
 using Capicua.ApiToSms.Cliente;
 using Capicua.ApiToSms.Pruebas.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+// Publicada (el zip del release), la raíz es la carpeta del ejecutable, con su wwwroot y su
+// conexion.json, se lance desde donde se lance. Con `dotnet run`, la del proyecto, como siempre.
+var publicada = Directory.Exists(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = publicada ? AppContext.BaseDirectory : null
+});
 
 // Solo en este equipo: la web manda SMS de verdad con la clave guardada en conexion.json, y no
 // tiene autenticación propia.

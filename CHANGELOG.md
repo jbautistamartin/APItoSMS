@@ -14,6 +14,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
 
 ## [No publicado]
 
+---
+
+## [1.0.0] — 2026-11-02
+
+Primera versión publicada.
+
 ### Añadido
 
 - **API HTTPS en la red local** (`/api/v1`): enviar un mensaje o un lote, consultar su estado,
@@ -48,4 +54,5 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
   generado en el teléfono no viaja nunca.
 - **Biblioteca C# `Capicua.ApiToSms.Cliente`** (`dotnet/`): fija el certificado, pone la
   `Idempotency-Key`, reintenta lo que es seguro reintentar, convierte cada error en una excepción
-  y espera el resultado de un mensaje. Y una **web de pruebas** que la usa.
+  y espera el resultado de un mensaje. Firmada con nombre seguro (token `a313609336f4f9ff`). Y una
+  **web de pruebas** que la usa, publicada autocontenida para Windows y Linux (sin instalar .NET).
