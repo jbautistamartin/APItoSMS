@@ -6,8 +6,9 @@
 >
 > Escrito el 1 nov 2026 y revisado el mismo día. **Fases 1 a 9 cerradas el 1 nov 2026**; la 10
 > está a medias: las pruebas de seguridad y de protocolo pasaron en el teléfono, y faltan las de
-> resistencia (lote largo, pantalla apagada, reinicio) y la publicación. El repositorio existe en
-> local, en `develop`, **sin remoto** (decisión G). Las decisiones del punto 9 están tomadas,
+> resistencia (lote largo, pantalla apagada, reinicio) y la publicación. El repositorio está en
+> GitHub desde el 1 nov 2026, antes de la 1.0.0 (decisión G, cambiada), con `develop` como rama
+> por defecto hasta la release. Las decisiones del punto 9 están tomadas,
 > incluidas las dos que salieron por el camino (L y M).
 
 ---
@@ -151,8 +152,8 @@ falso, sin radio.
 
 ### Fase 1 — Nacimiento: repositorio nuevo, esqueleto heredado e icono · `[x]`
 
-- `git init` con `main` y `develop` (git-flow, como las cinco); el trabajo en `develop`. **Sin
-  remoto** hasta la 1.0.0 (decisión G).
+- `git init` con `main` y `develop` (git-flow, como las cinco); el trabajo en `develop`. Sin
+  remoto hasta el 1 nov 2026 (decisión G).
 - Esqueleto Gradle copiado de SMSRelay: `settings.gradle.kts`, `build.gradle.kts`, `gradle/`
   (wrapper, `libs.versions.toml`, `gradle-daemon-jvm.properties`), `gradle.properties`,
   `.gitignore`, `LICENSE`, `local.properties` de firma (`../../Claves/capicua.jks`, alias
@@ -369,7 +370,8 @@ nada.
 
 Y después, la publicación:
 
-1. **Crear `github.com/jbautistamartin/APItoSMS`** (decisión G) y subir `main` y `develop`.
+1. ~~Crear `github.com/jbautistamartin/APItoSMS`~~ — hecho el 1 nov 2026, antes de la release
+   (decisión G). Al publicar, `main` recibe el código y vuelve a ser la rama por defecto.
 2. El procedimiento de siempre: `CHANGELOG`, `assembleRelease`, huella del APK con `apksigner`.
 3. `dotnet build -c Release` de `ApiToSms.Cliente`.
 4. `gh release create v1.0.0` con **el APK y la DLL**.
@@ -502,7 +504,7 @@ Tomadas el 1 nov 2026.
 | **D** | Avisar al cliente del resultado | **Solo sondeo** (`GET`) en la 1.0.0 | *Webhook* firmado con HMAC; queda para más adelante |
 | **E** | Color del icono | **Magenta / frambuesa**, tono 40 | Gris pizarra, rojo |
 | **F** | Simulador del teléfono en C# | **No**: la biblioteca se prueba con tests unitarios y la web contra el teléfono | Simulador que imita la API |
-| **G** | Repositorio en GitHub | **Al publicar la 1.0.0** | Al cerrar la fase 1 |
+| **G** | Repositorio en GitHub | **Al acabar la fase 9** (1 nov 2026; se pensó para la 1.0.0 y el usuario lo adelantó), público, con `develop` por defecto hasta la release | Al cerrar la fase 1, o al publicar |
 | **H** | SIM de salida | **Un ajuste global**, como en SMSRelay | Campo `sim` por petición |
 | **I** | Cómo llega la biblioteca C# a la empresa | **DLL adjunta al release de GitHub**, junto al APK | NuGet público, o copiar el proyecto |
 | **J** | Origen del certificado TLS | **Los dos**: generado por el teléfono por defecto, o importado (`.p12`) | Solo uno de ellos |

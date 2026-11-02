@@ -61,9 +61,11 @@ idempotencia, lotes, pausa, cancelación, el bloqueo por fuerza bruta, la pantal
 apagada, reinicio con cola, matar la app enviando, quitar la wifi) y la importación de un `.p12`
 de la CA de la empresa. La tabla, fila a fila, está en la fase 10.
 
-**No hay repositorio en GitHub** (decisión G): se crea al publicar la 1.0.0, con `main` y
-`develop`. Hasta entonces el comprobador de actualizaciones recibe un 404, que trata como «no hay
-releases». El trabajo va en `develop`.
+**El repositorio es `github.com/jbautistamartin/APItoSMS`** (público, creado el 1 nov 2026 antes
+de la 1.0.0; decisión G). Hasta la release la rama por defecto es `develop`, porque `main` solo
+tiene el commit vacío de inicio; al publicar, `main` recibe el código y vuelve a serlo. Sin
+releases, el comprobador de actualizaciones no encuentra ninguna y no avisa. El trabajo va en
+`develop`.
 
 ## Arquitectura
 
