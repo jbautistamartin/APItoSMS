@@ -120,12 +120,9 @@ class ServidorHttps(
             val cliente = try {
                 servidor.accept()
             } catch (e: SocketException) {
-                // Cerrado por detener(), o destruido por el sistema al perder la IP.
-                if (socket === servidor) {
-                    runCatching { servidor.close() }
-                    alFallar(e)
-                    alCaer()
-                }
+                // Cerrado por detener(), o destruido por el sistema al perder la IP: lo decide
+                // la comprobación de después del bucle.
+                if (socket === servidor) alFallar(e)
                 break
             } catch (e: IOException) {
                 alFallar(e)
@@ -141,6 +138,12 @@ class ServidorHttps(
             } catch (e: RejectedExecutionException) {
                 runCatching { cliente.close() }
             }
+        }
+        // Fuera del bucle sin detener(): el socket murió solo, también si se cerró antes de llegar
+        // a accept() y no hubo excepción.
+        if (socket === servidor) {
+            runCatching { servidor.close() }
+            alCaer()
         }
     }
 

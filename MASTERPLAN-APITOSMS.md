@@ -359,10 +359,10 @@ Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2
 | # | Prueba | Se espera | Resultado |
 |---|---|---|---|
 | 1 | Un SMS desde la web de pruebas | `ENVIADO`, y `ENTREGADO` si el operador lo informa | ✅ `ENVIADO` y recibido. Telcel no manda el informe (punto 2) |
-| 2 | Lote de 50 | Salen en orden, de uno en uno, con la pausa configurada | ⏳ Pendiente; probado con un lote de 3 |
+| 2 | Lote de 50 | Salen en orden, de uno en uno, con la pausa configurada | ✅ 2 nov: en orden, uno cada ~4,5 s (pausa de 3 s + envío), los 50 en 3 min 44 s |
 | 3 | Pantalla apagada 30 min y otro lote | La API contesta y la cola avanza (Doze, `WifiLock`) | ⏳ Pendiente |
-| 4 | Reiniciar el teléfono con 20 en cola | Al volver, el servidor escucha y la cola sigue | ⏳ Pendiente. Tras `adb install`, el rescate levantó el servidor en < 1 min |
-| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C | ⏳ Pendiente (cubierto por los tests de `ProcesadorDeCola`) |
+| 4 | Reiniciar el teléfono con 20 en cola | Al volver, el servidor escucha y la cola sigue | ✅ 2 nov, con la cola pausada: los 20 siguen `EN_COLA` y la pausa se conserva. **El servidor no arranca hasta el primer desbloqueo** (la app no es *directBootAware* y Room vive en el almacenamiento cifrado); desbloqueado, escucha en ~20 s sin abrir la app |
+| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C | ⚠️ 2 nov, con `am crash` en el 11 de 50: se reenvió, pero **el último**, porque el rescate solo actúa sin pasada en marcha y la pasada relanzada siguió con el 12. Arreglado: cada pasada de `ColaWorker` empieza rescatando. Falta verlo en el teléfono |
 | 6 | Mismo `Idempotency-Key` dos veces | Un solo SMS | ✅ `Idempotent-Replayed: true` |
 | 7 | Clave revocada, IP no permitida, prefijo no permitido | `401`, `403`, `422` | ✅ `401` uniforme y `422` por campo; `403` por IP, en tests |
 | 8 | 10 fallos de autenticación | IP bloqueada | ✅ Corte a nivel TCP; el botón del Panel la desbloquea |

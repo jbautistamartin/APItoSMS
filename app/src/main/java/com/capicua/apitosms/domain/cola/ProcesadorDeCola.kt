@@ -164,7 +164,8 @@ class ProcesadorDeCola(
      * duplicar, como en SMSRelay, y el error que queda en el mensaje lo dice.
      *
      * Solo se llama cuando no hay ninguna pasada de la cola en marcha: con una en marcha, el
-     * `ENVIANDO` es legítimo.
+     * `ENVIANDO` es legítimo. Lo llaman el rescate y **cada pasada al empezar**, que es cuando se
+     * sabe seguro que no hay otra (la cola es un trabajo único).
      */
     suspend fun rescatarHuerfanos(): Int {
         val ahora = reloj.ahora()

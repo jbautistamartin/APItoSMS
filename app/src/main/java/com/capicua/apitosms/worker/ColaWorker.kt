@@ -37,6 +37,11 @@ import java.time.Instant
  *   vuelve a probar cada 30 s.
  * - **Se acercan los diez minutos** que WorkManager da a un trabajo. Deja otra pasada encadenada
  *   y termina limpia, en lugar de que el sistema la corte a mitad de un envío.
+ *
+ * **Empieza rescatando los huérfanos.** Si el proceso murió enviando, WorkManager relanza la pasada
+ * enseguida, y el rescate solo actúa sin pasada en marcha: con la cola llena, el `ENVIANDO`
+ * huérfano esperaba a que se vaciara y salía el último (fase 10, prueba 5). Rescatado aquí, vuelve
+ * a `EN_COLA` con su `admitidoEn` y es el siguiente en salir.
  */
 @HiltWorker
 class ColaWorker @AssistedInject constructor(
@@ -50,6 +55,8 @@ class ColaWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val inicio = SystemClock.elapsedRealtime()
+        val rescatados = procesador.rescatarHuerfanos()
+        if (rescatados > 0) Timber.i("ColaWorker: $rescatados mensaje(s) rescatado(s) al empezar")
 
         while (!isStopped) {
             when (val paso = procesador.procesarSiguiente()) {
