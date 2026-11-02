@@ -4,8 +4,11 @@
 > empiezan en la SIM —un SMS que llega— y terminan en otro sitio. APItoSMS empieza en otro sitio
 > —una petición HTTP desde una computadora de la red local— y termina en la SIM: un SMS que sale.
 >
-> Escrito el 1 nov 2026, y revisado el mismo día. **Ninguna fase empezada.** Todas las decisiones
-> del punto 9 están tomadas.
+> Escrito el 1 nov 2026 y revisado el mismo día. **Fases 1 a 9 cerradas el 1 nov 2026**; la 10
+> está a medias: las pruebas de seguridad y de protocolo pasaron en el teléfono, y faltan las de
+> resistencia (lote largo, pantalla apagada, reinicio) y la publicación. El repositorio existe en
+> local, en `develop`, **sin remoto** (decisión G). Las decisiones del punto 9 están tomadas,
+> incluidas las dos que salieron por el camino (L y M).
 
 ---
 
@@ -64,8 +67,32 @@ forma de la cola** (en serie en vez de un worker por reenvío).
 
 ## 2. Lo que ya está hecho
 
-- **La carpeta `APItoSMS/`**, vacía salvo este fichero. Sin repositorio todavía: nace en la
-  fase 1, nuevo (decisión A).
+- **La aplicación entera**, en `develop`: servidor HTTPS propio, cola en serie, claves con
+  ámbitos, las seis pantallas, copia de ajustes. 82 tests JVM.
+- **`dotnet/`**: la biblioteca cliente y la web de pruebas, con 38 tests xUnit. Sin generador de
+  certificados (decisión L).
+- **`docs/openapi.yaml` y `docs/errores.md`**, con un test que compara las rutas con las reales.
+- **Probado en el teléfono** (Xiaomi, HyperOS, Android 16, SIM Telcel): ver la tabla de la
+  fase 10.
+
+Lo que la puesta en marcha enseñó y no estaba previsto:
+
+- **Ktor no sirve.** El motor CIO de Ktor no tiene TLS de servidor, y Netty o Jetty pesan varios
+  MB por un servidor que atiende a unas pocas computadoras. El *spike* acabó en un servidor
+  HTTP/1.1 propio sobre `SSLServerSocket` (`data/servidor/`): unas 400 líneas, con límites de
+  tamaño, tiempo de saludo y número de conexiones.
+- **Telcel no manda informes de entrega** cuando el SMS sale por VoWiFi (IMS/IWLAN): el registro
+  de la radio no trae ningún `StatusReport`. Con ese operador `ENVIADO` es el estado final, y la
+  biblioteca y los documentos lo dicen.
+- **Un `POST` sin cuerpo no lleva `Content-Length`**, y el servidor lo rechazaba con `411`. La
+  primera pausa de la cola en el teléfono falló así y la cola siguió enviando. Ahora un cuerpo
+  sin longitud es un cuerpo vacío (RFC 9112).
+- **`JsonContent` de .NET manda el cuerpo *chunked***, y el servidor contesta `501`. La biblioteca
+  serializa antes y manda `Content-Length`; `docs/errores.md` lo avisa para quien escriba su
+  propio cliente.
+- **HyperOS no reabre el servidor tras `adb install`** (no entrega `MY_PACKAGE_REPLACED` a
+  tiempo). El rescate de huérfanos, que también vigila el servidor, lo levanta en menos de un
+  minuto.
 
 ---
 
@@ -79,11 +106,11 @@ forma de la cola** (en serie en vez de un worker por reenvío).
   resultado se consulta después.
 - **Cola en serie.** Hay como mucho **un SMS en vuelo**: el siguiente no empieza hasta que el
   anterior ha confirmado, fallado o agotado su tiempo. Entre uno y otro, una pausa configurable.
-- **Herramientas de prueba en C#**, en el mismo repositorio: biblioteca cliente, web de pruebas
-  y generador de certificados (fase 8).
+- **Herramientas de prueba en C#**, en el mismo repositorio: biblioteca cliente y web de pruebas
+  (fase 8). Sin generador de certificados (decisión L).
 - **El certificado TLS, por dos vías** (1 nov 2026): por defecto lo genera el teléfono, y en
-  Ajustes se puede **importar uno propio** (`.p12`), creado con la herramienta de C# o firmado por
-  la CA de la empresa. Detalle en el punto 6.
+  Ajustes se puede **importar uno propio** (`.p12`), firmado por la CA de la empresa. Detalle en
+  el punto 6.
 - **Mismo toolchain que SMSRelay**: Gradle 9.8.2, AGP 9.4.1, Kotlin 2.4.21, compileSdk 37,
   targetSdk 35, minSdk 26, JVM 17, Temurin 25. Y `net10.0` para lo de C#, como el `test-server`
   de SMSRelay.
@@ -122,7 +149,7 @@ falso, sin radio.
 
 ## 5. Fases
 
-### Fase 1 — Nacimiento: repositorio nuevo, esqueleto heredado e icono · `[ ]`
+### Fase 1 — Nacimiento: repositorio nuevo, esqueleto heredado e icono · `[x]`
 
 - `git init` con `main` y `develop` (git-flow, como las cinco); el trabajo en `develop`. **Sin
   remoto** hasta la 1.0.0 (decisión G).
@@ -143,7 +170,7 @@ falso, sin radio.
 - **Cierre:** compila, los tests heredados pasan, instala junto a SMSRelay y se distinguen en el
   lanzador.
 
-### Fase 2 — Lo heredado, adaptado · `[ ]`
+### Fase 2 — Lo heredado, adaptado · `[x]`
 
 - Manifiesto: solo `SEND_SMS` de los restringidos; se añaden `INTERNET`, `ACCESS_NETWORK_STATE`,
   `ACCESS_WIFI_STATE`, `WAKE_LOCK` y `FOREGROUND_SERVICE_SPECIAL_USE`.
@@ -155,7 +182,7 @@ falso, sin radio.
 - **Cierre:** la app arranca con pantallas vacías y `SmsSender` manda un SMS desde un botón de
   depuración.
 
-### Fase 3 — El mensaje y la cola en serie · `[ ]`
+### Fase 3 — El mensaje y la cola en serie · `[x]`
 
 El núcleo. Todo con tests JVM y un `EnviadorDeMensajes` falso.
 
@@ -191,8 +218,13 @@ EN_COLA ──► ENVIANDO ──► ENVIADO ──► ENTREGADO
 - El worker **drena**: toma el `EN_COLA` elegible más antiguo (`admitido_en`, y
   `proximo_intento_en <= ahora`), lo pasa a `ENVIANDO`, llama a `SmsSender.enviar()`, espera,
   actualiza, duerme la pausa entre mensajes y sigue. Cuando no queda nada elegible, termina.
-- Usa `setForeground()` para poder pasar de los 10 minutos y, por si acaso, se reencadena a sí
-  mismo cada N mensajes.
+- ~~Usa `setForeground()` para pasar de los 10 minutos~~. **Hecho de otra forma:** sin
+  `setForeground()`, que obligaría a otra notificación fija además de la del servidor. La pasada
+  termina sola a los 8 minutos y deja otra encadenada (`Constants.MAX_PASADA_COLA_MS`), antes de
+  que WorkManager la corte a mitad de un envío.
+- **Paso `Bloqueada`** (no estaba en el plan): si falta el permiso `SEND_SMS`, la pasada termina
+  **sin gastar intentos** de los mensajes, y el Panel enseña el motivo. Un permiso retirado no
+  debe convertir la cola entera en `FALLIDO`.
 - **Un error transitorio no bloquea la cola** (decisión B): el mensaje vuelve a `EN_COLA` con
   backoff y pasa el siguiente.
 - `OrphanRescueWorker` adaptado: un `ENVIANDO` sin trabajo activo vuelve a `EN_COLA`
@@ -205,15 +237,21 @@ EN_COLA ──► ENVIANDO ──► ENVIADO ──► ENTREGADO
 
 **Idempotencia de la API** (al estilo de Stripe): la misma `Idempotency-Key` de la misma clave
 con el mismo cuerpo devuelve el mensaje original y no crea otro; con un cuerpo distinto,
-`409 Conflict`. Las claves de idempotencia se guardan 48 h.
+`409 Conflict`. ~~Las claves de idempotencia se guardan 48 h.~~ **Hecho:** la clave se guarda
+en el propio mensaje y vive lo que vive él (la retención de mensajes, 30 días por defecto). Un lote
+guarda `clave#índice` en cada mensaje.
 
-### Fase 4 — El servidor HTTP · `[ ]`
+### Fase 4 — El servidor HTTP · `[x]`
 
 - **Primero un *spike* de medio día**: Ktor server en Android con TLS. El motor CIO es el ligero
   pero hay que comprobar que admite TLS en la versión que toque; si no, Netty (más pesado) o
   Jetty. Hay que medir el tamaño del APK y el arranque, y que el servidor pueda servir una clave
   de `AndroidKeyStore` **en los dos casos**: generada allí e importada de un `.p12` (punto 6, TLS).
   El resultado del *spike* se anota aquí antes de seguir.
+- **Resultado del *spike*:** CIO no tiene TLS de servidor, y Netty y Jetty eran demasiado para
+  esto. Servidor propio sobre `SSLServerSocket`, con el `KeyManager` de `AndroidKeyStore`, que
+  sirve las dos claves (generada e importada) sin sacarlas de allí. El filtro de IP (bloqueadas y
+  redes permitidas) va **antes del saludo TLS**, al aceptar la conexión.
 - **`ApiServerService`**: ForegroundService de tipo `specialUse` (no `dataSync`, que en Android
   15 tiene un tope de 6 h). Notificación fija con la dirección y el estado de la cola.
 - **`WifiLock` de alto rendimiento y `WakeLock` parcial** mientras el servidor esté encendido:
@@ -242,19 +280,19 @@ Una clave solo ve sus propios mensajes, salvo que tenga el ámbito `admin`.
 - `docs/openapi.yaml`, escrito a mano y comprobado por un test que recorre las rutas reales.
 - **Cierre:** `curl -k` desde la computadora manda un SMS y consulta su estado.
 
-### Fase 5 — Seguridad · `[ ]`
+### Fase 5 — Seguridad · `[x]`
 
 Ver el punto 6 completo. Aquí se implementa: claves con ámbitos, lista de IPs por clave, límites
 de ritmo y cuotas, bloqueo por fallos de autenticación, lista de destinos permitidos, auditoría
 y retención. Cada mecanismo con su test.
 
-### Fase 6 — Interfaz · `[ ]`
+### Fase 6 — Interfaz · `[x]`
 
 | Pestaña | Contenido |
 |---|---|
-| **Panel** | Servidor encendido/apagado, `https://IP:puerto`, **huella SHA-256 del certificado y QR** con URL + huella, longitud de la cola, en vuelo, enviados y fallidos hoy, cuota restante, botón de pausa |
-| **Mensajes** | Historial con filtro por estado y clave; detalle con todos los tiempos y el error |
-| **Claves** | Crear (se enseña **una sola vez**), nombre, ámbitos, IPs permitidas, cuotas, revocar, último uso |
+| **Panel** | Servidor encendido/apagado, `https://IP:puerto`, **huella SHA-256 del certificado y de la clave pública**, con botón de copiar (sin QR: decisión M), longitud de la cola, enviados y fallidos hoy, botón de pausa, avisos de lo que falta por preparar |
+| **Mensajes** | Historial con filtro por estado; detalle con todos los tiempos y el error, y cancelar si sigue en cola |
+| **Claves** | **Subpantalla desde el Panel**, no pestaña: detrás de la credencial del teléfono y con `FLAG_SECURE`. Crear (se enseña **una sola vez**), nombre, ámbitos, IPs permitidas, cuotas, regenerar, revocar, último uso |
 | **Ajustes** | Puerto, SIM, pausa entre mensajes, intentos, tiempo de espera, cuotas globales, prefijos permitidos, retención. **Certificado**: origen (generado o importado), sujeto, caducidad y huella; regenerar; importar `.p12` con su contraseña |
 | **Registro** | Log de auditoría y de sistema |
 | **Acerca de** | Las mismas tarjetas, en el mismo orden, que las otras cinco |
@@ -262,7 +300,7 @@ y retención. Cada mecanismo con su test.
 La guía de preparación del teléfono (punto 6, «Límite de Android») va en el Panel como aviso
 mientras no esté hecha.
 
-### Fase 7 — Copia de seguridad · `[ ]`
+### Fase 7 — Copia de seguridad · `[x]`
 
 - Exporta los ajustes, los prefijos permitidos y las claves **sin su secreto** (nombre, ámbitos,
   IPs y cuotas). Al importar, las claves llegan revocadas y hay que regenerarlas: un secreto no
@@ -272,7 +310,7 @@ mientras no esté hecha.
   `.p12` y los clientes no cambian: es el principal motivo para usar esa vía.
 - `android:allowBackup="false"`, para que la copia de Google no se lleve la base.
 
-### Fase 8 — Herramientas C# · `[ ]`
+### Fase 8 — Herramientas C# · `[x]`
 
 Carpeta `dotnet/`, solución `ApiToSms.slnx`, `net10.0`, con la cabecera LGPL en cada `.cs`.
 **Sin simulador del teléfono** (decisión F): la biblioteca se prueba con tests unitarios y la web,
@@ -280,17 +318,20 @@ contra el teléfono.
 
 | Proyecto | Qué es |
 |---|---|
-| **`ApiToSms.Cliente`** | Biblioteca: `ClienteApiToSms` con `EnviarAsync`, `EnviarLoteAsync`, `ConsultarAsync`, `EsperarResultadoAsync` (sondeo con backoff), `CancelarAsync`. Hace el *pinning* de la huella en `ServerCertificateCustomValidationCallback`, pone el `Idempotency-Key` y reintenta solo lo que es seguro reintentar. La que copiaría la empresa en sus sistemas |
+| **`ApiToSms.Cliente`** | Biblioteca: `ClienteApiToSms` con `EnviarAsync`, `EnviarLoteAsync`, `ConsultarAsync`, `ListarAsync`/`ListarTodosAsync`, `EsperarResultadoAsync` (sondeo con backoff), `CancelarAsync`, `EstadoColaAsync`, `PausarAsync`/`ReanudarAsync`, y `AddApiToSms` para inyección de dependencias. Hace el *pinning* de la huella (la del certificado o la de la clave pública) en el `RemoteCertificateValidationCallback`, pone el `Idempotency-Key` y reintenta solo lo que es seguro reintentar. La que copiaría la empresa en sus sistemas |
 | **`ApiToSms.Pruebas.Web`** | La web de pruebas. ASP.NET Core con `wwwroot` estático, igual que el `test-server` de SMSRelay. Configurar URL, clave y huella; enviar uno; **generar lotes** (N mensajes a una lista de números); tabla con el estado de cada uno, en vivo (el backend sondea y lo empuja por SSE); ver la cola; pausar y reanudar. El navegador no habla con el teléfono: lo hace el backend con la biblioteca, porque un navegador no puede fijar un certificado autofirmado |
-| **`ApiToSms.Certificado`** | Herramienta de consola: `crear --ip 192.168.1.50 [--dns …] --dias 825` genera el certificado con `CertificateRequest` (sin `openssl`), saca el `.p12` para el teléfono y escribe la huella SHA-256 para los clientes. Admite firmarlo con una CA propia (`--ca empresa.pfx`) |
-| **`ApiToSms.Cliente.Tests`** | xUnit de la biblioteca: el protocolo con un `HttpMessageHandler` falso (reintentos, `Idempotency-Key`, `Retry-After`, errores a excepciones, sondeo), y el *pinning* contra un Kestrel en proceso con un certificado de `ApiToSms.Certificado` (huella buena acepta, huella mala rechaza) |
+| ~~**`ApiToSms.Certificado`**~~ | **No se hace** (decisión L): la empresa tiene su propia CA, y el `.p12` que emite se importa en Ajustes |
+| **`ApiToSms.Cliente.Tests`** | xUnit de la biblioteca: el protocolo con un `HttpMessageHandler` falso (reintentos, `Idempotency-Key`, `Retry-After`, `Content-Length`, errores a excepciones, sondeo), y el *pinning* contra un Kestrel en proceso con un certificado creado en el propio test (huella buena acepta, huella mala rechaza) |
 
 - **Distribución** (decisión I): `ApiToSms.Cliente.dll` se adjunta al release de GitHub, junto
   al APK, con su XML de documentación.
 - **Cierre:** los tests pasan, y la web de pruebas manda un lote de 20 al teléfono y los ve
   terminar.
+- **Cerrada con un lote de 3, no de 20:** todo SMS de prueba va al número del dueño, así que se
+  mandó el lote con la cola pausada, se cancelaron dos y salió uno, seguido en vivo por SSE. El
+  lote de 50 de la fase 10 sigue pendiente.
 
-### Fase 9 — Documentación y privacidad · `[ ]`
+### Fase 9 — Documentación y privacidad · `[x]`
 
 - `README.md` con la puesta en marcha completa (teléfono, red, primera clave, primer `curl`).
 - `CLAUDE.md` del proyecto con el porqué de cada decisión.
@@ -299,24 +340,32 @@ contra el teléfono.
   entrega. Retención y purga explicadas.
 - `CLAUDE.md` raíz de `C:\Proyectos\SMS`: la sexta fila de la tabla, el linaje y el color.
 
-### Fase 10 — Dispositivo real y release 1.0.0 · `[ ]`
+### Fase 10 — Dispositivo real y release 1.0.0 · `[~]`
 
-Pruebas en el POCO, con la SIM que se elija:
+Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2026:
 
-| # | Prueba | Se espera |
-|---|---|---|
-| 1 | Un SMS desde la web de pruebas | `ENVIADO`, y `ENTREGADO` si el operador lo informa |
-| 2 | Lote de 50 | Salen en orden, de uno en uno, con la pausa configurada |
-| 3 | Pantalla apagada 30 min y otro lote | La API contesta y la cola avanza (Doze, `WifiLock`) |
-| 4 | Reiniciar el teléfono con 20 en cola | Al volver, el servidor escucha y la cola sigue |
-| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C |
-| 6 | Mismo `Idempotency-Key` dos veces | Un solo SMS |
-| 7 | Clave revocada, IP no permitida, prefijo no permitido | `401`, `403`, `422` |
-| 8 | 10 fallos de autenticación | IP bloqueada |
-| 9 | Huella equivocada en el cliente | El cliente se niega a conectar |
-| 9b | Importar un `.p12` creado con `ApiToSms.Certificado` | El servidor lo sirve y la huella del Panel coincide con la de la herramienta |
-| 10 | Desactivar la wifi | El servidor deja de escuchar y no se ata a datos móviles |
-| 11 | Destino inexistente | `FALLIDO` con el error del operador, y la cola sigue |
+| # | Prueba | Se espera | Resultado |
+|---|---|---|---|
+| 1 | Un SMS desde la web de pruebas | `ENVIADO`, y `ENTREGADO` si el operador lo informa | ✅ `ENVIADO` y recibido. Telcel no manda el informe (punto 2) |
+| 2 | Lote de 50 | Salen en orden, de uno en uno, con la pausa configurada | ⏳ Pendiente; probado con un lote de 3 |
+| 3 | Pantalla apagada 30 min y otro lote | La API contesta y la cola avanza (Doze, `WifiLock`) | ⏳ Pendiente |
+| 4 | Reiniciar el teléfono con 20 en cola | Al volver, el servidor escucha y la cola sigue | ⏳ Pendiente. Tras `adb install`, el rescate levantó el servidor en < 1 min |
+| 5 | Matar la app con un mensaje `ENVIANDO` | Se rescata según la decisión C | ⏳ Pendiente (cubierto por los tests de `ProcesadorDeCola`) |
+| 6 | Mismo `Idempotency-Key` dos veces | Un solo SMS | ✅ `Idempotent-Replayed: true` |
+| 7 | Clave revocada, IP no permitida, prefijo no permitido | `401`, `403`, `422` | ✅ `401` uniforme y `422` por campo; `403` por IP, en tests |
+| 8 | 10 fallos de autenticación | IP bloqueada | ✅ Corte a nivel TCP; el botón del Panel la desbloquea |
+| 9 | Huella equivocada en el cliente | El cliente se niega a conectar | ✅ `curl --pinnedpubkey` y la biblioteca C#, con las dos formas de huella |
+| 9b | Importar el `.p12` de la CA de la empresa | El servidor lo sirve y la huella del Panel coincide con la del certificado | ⏳ Pendiente: falta un `.p12` de esa CA |
+| 10 | Desactivar la wifi | El servidor deja de escuchar y no se ata a datos móviles | ⏳ Pendiente |
+| 11 | Destino inexistente | `FALLIDO` con el error del operador, y la cola sigue | ⚠️ Fallo genérico del operador, visto por accidente (punto 2); **no se repite con números inventados** |
+
+Y otras que no estaban en la tabla: pausa y reanudación por la API (tras arreglar el `411`),
+cancelación, la pantalla de Claves con `FLAG_SECURE` (la captura sale negra) y la credencial,
+y las pestañas Mensajes y Registro.
+
+**Regla para las pruebas:** los SMS reales solo van a un número del dueño, y una prueba que deba
+no enviar se hace con la cola pausada, **comprobando que la pausa se aplicó** antes de mandar
+nada.
 
 Y después, la publicación:
 
@@ -341,9 +390,9 @@ clave privada acaba en **`AndroidKeyStore`**, de donde no se puede extraer:
 
 | | Generado por el teléfono (por defecto) | Importado (`.p12`) |
 |---|---|---|
-| **Cómo** | La app crea el par de claves en `AndroidKeyStore`, con certificado autofirmado | Se crea con `ApiToSms.Certificado` o lo firma la CA de la empresa, y se importa desde Ajustes con su contraseña |
+| **Cómo** | La app crea el par de claves en `AndroidKeyStore`, con certificado autofirmado | Lo firma la CA de la empresa, y se importa desde Ajustes con su contraseña |
 | **La clave privada** | No ha existido nunca fuera del teléfono | Existió en un fichero: **hay que borrar el `.p12`** o guardarlo en un sitio seguro. La app lo recuerda al terminar la importación |
-| **Cómo confía el cliente** | Fijando la **huella exacta** (Panel: huella SHA-256 y QR) | Fijando la huella, o, si lo firmó una CA de la empresa, **validando contra esa CA** sin fijar nada |
+| **Cómo confía el cliente** | Fijando la **huella exacta** (Panel: la del certificado y la de la clave pública) | Fijando la huella, o, si lo firmó una CA de la empresa, **validando contra esa CA** sin fijar nada |
 | **Cambiar de teléfono** | Huella nueva: hay que actualizar todos los clientes | Se importa el mismo `.p12` y los clientes no cambian |
 
 - Que sea autofirmado no es un problema: el cliente no confía en una CA pública sino en la huella.
@@ -354,9 +403,9 @@ clave privada acaba en **`AndroidKeyStore`**, de donde no se puede extraer:
   EC P-256, y avisa si la IP del SAN no coincide con la IP wifi actual.
 - Regenerar o importar otro certificado invalida a propósito todos los clientes que fijaban la
   huella anterior.
-- `curl` fija la huella con `--pinnedpubkey`; la biblioteca C#, en
-  `ServerCertificateCustomValidationCallback`, comparando la huella exacta y **nunca** devolviendo
-  `true` sin más.
+- `curl` fija la huella con `--pinnedpubkey`; la biblioteca C#, en el
+  `RemoteCertificateValidationCallback`, comparando la huella exacta en tiempo constante y
+  **nunca** devolviendo `true` sin más.
 
 ### Autenticación: API keys con ámbitos
 
@@ -425,7 +474,8 @@ Va en el README, en el Panel como aviso y en la fila 2 de la fase 10. Junto con 
 | **La IP del teléfono cambia** | Los clientes apuntan a la IP vieja | Reserva DHCP en el router (README); el Panel enseña la IP actual |
 | **Duplicado tras caída** | El SMS salió pero la app murió antes de la confirmación | Decisión C; documentado |
 | **El `.p12` se queda por ahí** | Quien tenga el fichero y su contraseña puede hacerse pasar por el teléfono | La app lo recuerda tras importar; README; la vía por defecto no tiene fichero |
-| **El servidor HTTP pesa** | Netty puede añadir varios MB y tardar en arrancar | *Spike* al principio de la fase 4 |
+| ~~**El servidor HTTP pesa**~~ | Netty puede añadir varios MB y tardar en arrancar | **Resuelto:** servidor propio (punto 2) |
+| **Operador sin informes de entrega** | `ENVIADO` es el estado final y el cliente no sabe si llegó | Documentado en la API, la biblioteca y el README; `EsperarResultadoAsync` no se queda esperando para siempre |
 | **El linaje vuelve a tener dos ramas vivas** | Un arreglo en `SmsSender` o los workers de SMSRelay no llega aquí, y sin historial común ni masterplans compartidos nada lo recuerda | Dos aplicaciones, no cinco; anotarlo en los dos `CLAUDE.md`, con la lista de ficheros compartidos |
 | **El icono se olvida** | Ver la fase 1 | Cierre de la fase 1 |
 
@@ -457,3 +507,5 @@ Tomadas el 1 nov 2026.
 | **I** | Cómo llega la biblioteca C# a la empresa | **DLL adjunta al release de GitHub**, junto al APK | NuGet público, o copiar el proyecto |
 | **J** | Origen del certificado TLS | **Los dos**: generado por el teléfono por defecto, o importado (`.p12`) | Solo uno de ellos |
 | **K** | Los cinco masterplans anteriores | **No se copian**: este es el único plan del repositorio | Copiarlos como historia |
+| **L** | Generador de certificados en C# | **No** (1 nov 2026): la empresa tiene su propia CA | `ApiToSms.Certificado`, que llegó a escribirse y se retiró antes del primer commit |
+| **M** | QR en el Panel con URL y huella | **No** (1 nov 2026): los clientes son computadoras, que no escanean; la huella se copia con un botón | QR con zxing, que se llegó a hacer y se quitó |
