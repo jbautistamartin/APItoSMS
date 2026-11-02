@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nada sale del teléfono por la copia de Google ni por la transferencia entre dispositivos:
+    la base de datos guarda números y textos de terceros, y los hashes de las claves. La copia de
+    los ajustes es la de la propia aplicación, sin secretos (Ajustes → Copia de seguridad).
+    allowBackup="false" lo cubre hasta Android 11; esto, desde Android 12.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

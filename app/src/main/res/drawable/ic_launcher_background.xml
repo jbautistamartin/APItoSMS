@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fondo del icono adaptativo.
+
+    Magenta frambuesa, el color primario de la aplicación (`md_theme_primary`, #A4005F). La regla
+    viene de toda la familia: **el fondo del icono es el primario del tema**, no un color elegido
+    aparte. Si algún día cambia uno, tienen que cambiar los dos.
+
+    El color es lo que identifica a cada aplicación de la casa de un vistazo, porque pueden
+    convivir en el mismo teléfono: violeta SMSGateway (~262°), azul SMStoTelegram (~207°),
+    turquesa SMStoSMS (~186°), verde SMStoWhats (~140°), naranja SMSRelay (~23°). El magenta
+    (~335°) es el hueco que queda entre el violeta y el naranja, sin llegar al rojo del error.
+
+    El degradado es sutil a propósito, con el mismo reparto que el resto de la familia: un
+    extremo aclarado y otro oscurecido alrededor del primario.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path android:pathData="M0,0 H108 V108 H0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:startColor="#C8287A"
+                android:endColor="#64003A" />
+        </aapt:attr>
+    </path>
+
+</vector>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        SMS: solo enviar. APItoSMS no recibe SMS —no hay RECEIVE_SMS ni READ_SMS—: la entrada es
+        la API. READ_PHONE_STATE solo sirve para enumerar las SIM en un teléfono con dos.
+    -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- Telefonía obligatoria: sin SIM no sale ningún SMS y la aplicación no hace nada -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="true" />
+
+    <!--
+        Red. INTERNET es lo que permite abrir un socket de escucha, no solo conectar hacia fuera:
+        sin él no hay servidor. ACCESS_NETWORK_STATE y ACCESS_WIFI_STATE sirven para saber la IP
+        de la wifi —el servidor solo se ata a ella, nunca a los datos móviles— y para el WifiLock
+        que impide que la radio se duerma con la pantalla apagada.
+
+        El mismo INTERNET lo usa el comprobador de versiones, que pregunta a api.github.com y
+        baja el APK cuando alguien lo pide. Es la única conexión hacia fuera de la aplicación, y
+        se apaga desde «Acerca de».
+
+        REQUEST_INSTALL_PACKAGES permite abrir el instalador del sistema con el APK descargado.
+        No instala en silencio.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!--
+        Servicio en primer plano. El tipo es specialUse porque ninguno de los tipos de Android 14
+        describe «servidor de red local que espera peticiones»: dataSync tiene un tope de seis
+        horas al día, y este servicio está encendido siempre. La subcategoría va en la propiedad
+        PROPERTY_SPECIAL_USE_FGS_SUBTYPE del <service>.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Notificaciones (Android 13+): la del servicio en primer plano -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Permite pedir la exención de la optimización de batería, imprescindible aquí -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Credencial del teléfono para entrar en la gestión de claves -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <application
+        android:name=".ApiToSmsApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ApiToSms"
+        tools:targetApi="31">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- El servidor HTTPS. No exportado: solo lo arrancan la app, el arranque y el rescate. -->
+        <service
+            android:name=".service.ApiServerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Servidor HTTPS en la red local que recibe peticiones de envío de SMS de los sistemas de la empresa y debe estar disponible de forma continua." />
+        </service>
+
+        <!--
+            Informes de entrega. No exportado: el PendingIntent que se entrega a SmsManager lleva
+            el componente explícito, así que el sistema puede entregarlo igualmente y nadie más
+            puede fingir un informe.
+        -->
+        <receiver
+            android:name=".data.sms.EntregaReceiver"
+            android:exported="false" />
+
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <!-- Arranque rápido de algunos fabricantes: lo mandan en lugar de
+                     BOOT_COMPLETED cuando el apagado anterior fue el suyo. -->
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            Deshabilita la auto-inicialización de WorkManager (AndroidX Startup).
+            Sin esto, WorkManager se inicializa con la fábrica por defecto ANTES de que
+            Hilt inyecte HiltWorkerFactory, y los workers con @AssistedInject fallan con
+            "Could not create Worker". Con esto, ApiToSmsApplication (Configuration.Provider)
+            provee la fábrica correcta la primera vez que se llama WorkManager.getInstance().
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <!-- FileProvider para exportar el registro a un fichero compartible -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

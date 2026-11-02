@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">APItoSMS</string>
+
+    <!-- Comunes -->
+    <string name="accion_cancelar">Cancelar</string>
+    <string name="accion_cerrar">Cerrar</string>
+    <string name="accion_copiar">Copiar</string>
+    <string name="accion_guardar">Guardar</string>
+    <string name="accion_no">No</string>
+    <string name="copiado">%1$s copiado al portapapeles</string>
+
+    <!-- Navegación -->
+    <string name="nav_panel">Panel</string>
+    <string name="nav_mensajes">Mensajes</string>
+    <string name="nav_logs">Registro</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="nav_about">Acerca de</string>
+
+    <!-- Permisos -->
+    <string name="permiso_sms_titulo">Permiso obligatorio</string>
+    <string name="permiso_sms_mensaje">Esta aplicación necesita permiso para enviar SMS. Sin él, la API admite peticiones pero la cola se queda parada: los mensajes esperan, sin gastar intentos, hasta que se conceda. Concédelo en Ajustes → Aplicaciones → APItoSMS → Permisos.</string>
+    <string name="permiso_entendido">Entendido</string>
+
+    <!-- Panel -->
+    <string name="panel_titulo">Panel</string>
+    <string name="panel_servidor">Servidor de la API</string>
+    <string name="panel_estado_detenido">Apagado. Nadie puede conectarse.</string>
+    <string name="panel_estado_sin_red">Encendido, pero sin wifi: escuchará en cuanto vuelva la red local.</string>
+    <string name="panel_estado_error">No se pudo arrancar: %1$s</string>
+    <string name="panel_estado_escuchando">Escuchando en la red local, por HTTPS:</string>
+    <string name="panel_copiar_url">Copiar la dirección</string>
+    <string name="panel_url_etiqueta">Dirección de la API</string>
+    <string name="panel_certificado_titulo">Certificado del servidor</string>
+    <string name="panel_certificado_ninguno">Todavía no hay certificado: se genera al encender el servidor por primera vez.</string>
+    <string name="panel_certificado_generado">Generado en este teléfono. Los clientes tienen que fijar una de estas huellas.</string>
+    <string name="panel_certificado_importado">Importado de un .p12.</string>
+    <string name="panel_huella_certificado">Huella SHA-256 del certificado</string>
+    <string name="panel_huella_clave">Huella de la clave pública (curl --pinnedpubkey)</string>
+    <string name="panel_cola_titulo">Cola</string>
+    <string name="panel_cola_vacia">Vacía: no hay nada pendiente.</string>
+    <string name="panel_cola_en_marcha">%1$d en cola, saliendo de uno en uno.</string>
+    <string name="panel_cola_pausada">Pausada, con %1$d en cola. No sale nada hasta reanudarla.</string>
+    <string name="panel_cola_hoy">Hoy: %1$d admitidos · %2$d enviados · %3$d entregados · %4$d fallidos · %5$d cancelados o caducados</string>
+    <string name="panel_pausar">Pausar la cola</string>
+    <string name="panel_reanudar">Reanudar la cola</string>
+    <string name="panel_sin_claves">No hay ninguna clave activa.</string>
+    <string name="panel_gestionar_claves">Gestionar claves</string>
+    <string name="panel_avisos_titulo">Hay que revisar</string>
+    <string name="panel_aviso_permiso_sms">Falta el permiso de enviar SMS. La cola está parada hasta que se conceda.</string>
+    <string name="panel_aviso_bloqueo">La cola está detenida: %1$s</string>
+    <string name="panel_aviso_sin_claves">No hay ninguna clave activa: ningún cliente puede autenticarse. Crea una en Gestionar claves.</string>
+    <string name="panel_aviso_bateria">La aplicación no está exenta de la optimización de batería. Con la pantalla apagada, Android puede retrasar la cola durante horas y no deja que el servidor se reinicie solo. Arréglalo en Ajustes.</string>
+    <string name="panel_aviso_limite_android">Android limita a 30 los SMS que una aplicación puede mandar cada 30 minutos; pasado el tope pide permiso por cada SMS, y en un teléfono desatendido nadie lo da. Súbelo por ADB:\n%1$s\n%2$s</string>
+    <string name="panel_aviso_ips_bloqueadas">IPs bloqueadas 15 minutos por demasiados intentos fallidos: %1$s</string>
+    <string name="panel_desbloquear_ips">Desbloquear ahora</string>
+
+    <!-- Mensajes -->
+    <string name="mensajes_titulo">Mensajes</string>
+    <string name="mensajes_filtro_todos">Todos</string>
+    <string name="mensajes_vacio">No hay mensajes. Los que lleguen por la API aparecerán aquí.</string>
+    <string name="mensajes_texto_purgado">(texto borrado por la retención)</string>
+    <string name="mensajes_detalle_titulo">Mensaje</string>
+    <string name="mensajes_detalle_estado">Estado: %1$s</string>
+    <string name="mensajes_detalle_destino">Destino: %1$s</string>
+    <string name="mensajes_detalle_id">Id: %1$s</string>
+    <string name="mensajes_detalle_clave">Clave: %1$s</string>
+    <string name="mensajes_detalle_referencia">Referencia: %1$s</string>
+    <string name="mensajes_detalle_partes">Partes: %1$d · entregadas: %2$d</string>
+    <string name="mensajes_detalle_intentos">Intentos: %1$d</string>
+    <string name="mensajes_detalle_admitido">Admitido: %1$s</string>
+    <string name="mensajes_detalle_enviado">Enviado: %1$s</string>
+    <string name="mensajes_detalle_entregado">Entregado: %1$s</string>
+    <string name="mensajes_detalle_caduca">Caduca: %1$s</string>
+    <string name="mensajes_detalle_error">Último error: %1$s</string>
+    <string name="mensajes_cancelar">Cancelar el envío</string>
+    <string name="mensajes_cancelar_titulo">¿Cancelar el envío?</string>
+    <string name="mensajes_cancelar_mensaje">El mensaje a %1$s sale de la cola y no se enviará. Quien lo pidió verá el estado CANCELADO.</string>
+    <string name="mensajes_cancelado">Envío cancelado</string>
+    <string name="mensajes_no_cancelable">Ya no se puede cancelar: el mensaje salió de la cola.</string>
+
+    <!-- Claves -->
+    <string name="claves_titulo">Claves de la API</string>
+    <string name="claves_explicacion">Cada sistema que llama a la API lleva su propia clave, con sus permisos y desde sus redes. El secreto se enseña una sola vez, al crearla o regenerarla; el teléfono solo guarda su huella.</string>
+    <string name="claves_vacio">No hay ninguna clave. Sin claves, nadie puede usar la API.</string>
+    <string name="claves_sin_bloqueo">Este teléfono no tiene bloqueo de pantalla, así que cualquiera que lo coja puede crear claves. Ponle un PIN o un patrón.</string>
+    <string name="claves_credencial_titulo">Gestionar claves de la API</string>
+    <string name="claves_credencial_subtitulo">Confirma que eres tú</string>
+    <string name="claves_nueva">Nueva clave</string>
+    <string name="claves_editar">Editar clave</string>
+    <string name="claves_crear">Crear</string>
+    <string name="claves_campo_nombre">Nombre (el sistema que la usa)</string>
+    <string name="claves_campo_permisos">Permisos</string>
+    <string name="claves_ambito_enviar">Enviar mensajes y cancelar los propios</string>
+    <string name="claves_ambito_consultar">Consultar mensajes propios y la cola</string>
+    <string name="claves_ambito_admin">Administrar: ver todo y pausar la cola</string>
+    <string name="claves_campo_redes">Redes permitidas</string>
+    <string name="claves_campo_redes_ayuda">IP o CIDR, una por línea. Vacío: las del ajuste global.</string>
+    <string name="claves_campo_cuota">Cuota diaria (SMS)</string>
+    <string name="claves_campo_cuota_ayuda">Contando partes. 0: solo la cuota global.</string>
+    <string name="claves_campo_ritmo">Peticiones por minuto</string>
+    <string name="claves_activa">Activa</string>
+    <string name="claves_revocada">Revocada</string>
+    <string name="claves_fila_prefijo">%1$s… · %2$s</string>
+    <string name="claves_fila_uso">Último uso %1$s desde %2$s</string>
+    <string name="claves_fila_sin_uso">Sin usar todavía</string>
+    <string name="claves_fila_redes">"Redes: "</string>
+    <string name="claves_fila_cuota">%1$d SMS al día</string>
+    <string name="claves_accion_editar">Editar</string>
+    <string name="claves_accion_regenerar">Regenerar el secreto</string>
+    <string name="claves_accion_revocar">Revocar</string>
+    <string name="claves_accion_borrar">Borrar</string>
+    <string name="claves_regenerar_titulo">¿Regenerar el secreto?</string>
+    <string name="claves_regenerar_mensaje">El secreto actual de «%1$s» (%2$s…) deja de valer en el acto, y el sistema que lo use empezará a recibir 401. La clave queda activa con un secreto nuevo.</string>
+    <string name="claves_revocar_titulo">¿Revocar la clave?</string>
+    <string name="claves_revocar_mensaje">«%1$s» deja de autenticar en el acto. Sus mensajes siguen en la cola y se envían. Para reactivarla hay que regenerar el secreto.</string>
+    <string name="claves_borrar_titulo">¿Borrar la clave?</string>
+    <string name="claves_borrar_mensaje">«%1$s» desaparece de la lista. Sus mensajes se conservan, con su nombre, hasta que los purgue la retención.</string>
+    <string name="claves_secreto_titulo">Secreto de «%1$s»</string>
+    <string name="claves_secreto_mensaje">%1$s\n\nCópialo ahora y guárdalo en la configuración del sistema que lo va a usar. No se volverá a mostrar: si se pierde, hay que regenerarlo.\n\nSe manda en la cabecera Authorization: Bearer.</string>
+    <string name="claves_secreto_etiqueta">Secreto de la clave</string>
+    <string name="claves_secreto_guardado">Ya lo he guardado</string>
+
+    <!-- Registro -->
+    <string name="logs_titulo">Registro</string>
+    <string name="logs_vacio">El registro está vacío</string>
+    <string name="logs_filtro_todos">Todos</string>
+    <string name="logs_copiado">Entrada copiada al portapapeles</string>
+    <string name="logs_copiado_etiqueta">Registro de APItoSMS</string>
+    <string name="logs_limpiar">Limpiar</string>
+    <string name="logs_limpiar_titulo">Limpiar el registro</string>
+    <string name="logs_limpiar_mensaje">Se borrarán todas las entradas del registro de auditoría. No se puede deshacer.</string>
+    <string name="logs_exportar">Exportar</string>
+
+    <!-- Ajustes -->
+    <string name="settings_titulo">Ajustes</string>
+    <string name="settings_guardar">Guardar ajustes</string>
+    <string name="settings_guardado">Ajustes guardados</string>
+    <string name="settings_sim_ayuda">La SIM con la que salen los SMS.</string>
+    <string name="settings_sim_elegir">Elegir SIM</string>
+    <string name="settings_sim_por_defecto">La que elija el sistema</string>
+    <string name="settings_sim_desconocida">SIM %1$d, que ya no está puesta</string>
+    <string name="settings_sim_sin_permiso">Para ver las SIM, Android pide el permiso de leer el estado del teléfono.</string>
+    <string name="settings_informes">Pedir informe de entrega</string>
+    <string name="settings_informes_ayuda">Con él, un mensaje pasa de ENVIADO a ENTREGADO o NO_ENTREGADO cuando el operador lo confirma. Algunos operadores no los mandan, o los cobran.</string>
+    <string name="settings_certificado_titulo">Certificado TLS</string>
+    <string name="settings_certificado_ayuda">El teléfono genera el suyo, y su clave privada no sale nunca del almacén seguro. También puedes importar un .p12 hecho con ApiToSms.Certificado o con la CA de tu empresa.</string>
+    <string name="settings_certificado_ninguno">Sin certificado: se generará al encender el servidor.</string>
+    <string name="settings_certificado_generado">Generado en el teléfono\n%1$s</string>
+    <string name="settings_certificado_importado">Importado\n%1$s</string>
+    <string name="settings_certificado_regenerar">Generar uno nuevo</string>
+    <string name="settings_certificado_regenerar_aviso">Se crea una clave nueva y la huella cambia. Todos los clientes que fijan la huella actual dejarán de conectar hasta que se les configure la nueva.</string>
+    <string name="settings_certificado_regenerado">Certificado nuevo generado. Reparte la huella nueva.</string>
+    <string name="settings_certificado_importar">Importar un .p12</string>
+    <string name="settings_certificado_contrasena">Contraseña del .p12</string>
+    <string name="settings_certificado_leer">Leer</string>
+    <string name="settings_certificado_no_vale">Ese certificado no vale</string>
+    <string name="settings_certificado_confirmar">¿Importar este certificado?</string>
+    <string name="settings_certificado_confirmar_mensaje">%1$s\n\nSustituye al actual. Los clientes que fijan la huella actual dejarán de conectar.</string>
+    <string name="settings_certificado_importado_ok">Certificado importado. El servidor ya lo usa.</string>
+    <string name="settings_claves_ayuda">Crear, revocar y rotar las claves con las que se autentican los sistemas. Pide la credencial del teléfono.</string>
+    <string name="settings_android_titulo">Android</string>
+    <string name="settings_bateria_ok">✓ Exenta de la optimización de batería</string>
+    <string name="settings_bateria_falta">Sin exención de la optimización de batería: con la pantalla apagada la cola puede retrasarse horas.</string>
+    <string name="settings_bateria_abrir">Abrir el ajuste de batería</string>
+    <string name="settings_autoinicio_detalle">Xiaomi, Huawei, Oppo y Vivo no dejan arrancar a una aplicación tras reiniciar el teléfono mientras no esté en su lista de inicio automático, que viene vacía. Sin eso, tras un corte de luz la API no vuelve hasta que alguien abra la aplicación. No se puede comprobar desde aquí.</string>
+    <string name="settings_autoinicio_abrir">Abrir el inicio automático</string>
+    <string name="settings_sin_pantalla">Este teléfono no tiene esa pantalla. Búscala en los ajustes del sistema.</string>
+    <string name="settings_limite_detalle">Android limita los SMS que una aplicación puede mandar: 30 cada 30 minutos de fábrica. Solo se cambia por ADB.</string>
+    <string name="settings_limite_estado">Tope actual: %1$s\n\n%2$s\n%3$s</string>
+    <string name="settings_limite_desconocido">el de fábrica (30), o no se puede leer</string>
+    <string name="settings_copia_titulo">Copia de seguridad</string>
+    <string name="settings_copia_ayuda">Los ajustes y la lista de claves, en un JSON, para montar un teléfono de repuesto. No lleva secretos: las claves llegan revocadas y hay que regenerarlas. Tampoco lleva el certificado, los mensajes ni el registro.</string>
+    <string name="settings_copia_exportar">Exportar</string>
+    <string name="settings_copia_importar">Importar</string>
+    <string name="settings_copia_importar_aviso">Los ajustes de la copia sustituyen a los actuales, y sus claves se añaden revocadas. Las claves que ya hay no se tocan.</string>
+    <string name="settings_copia_elegir">Elegir el fichero</string>
+    <string name="settings_copia_exportada">Copia exportada</string>
+    <string name="settings_copia_error">No se pudo: %1$s</string>
+    <string name="settings_copia_importada_titulo">Copia importada</string>
+
+    <!-- Acerca de -->
+    <string name="about_empresa">Capicua</string>
+    <string name="about_autor">José Luis Bautista Martín</string>
+    <string name="about_descripcion">Convierte este teléfono en una pasarela de SMS para la red local. Los sistemas de la empresa piden envíos a una API HTTPS, autenticándose con su propia clave; el teléfono los guarda en una cola y los manda de uno en uno desde su SIM. El resultado —enviado, entregado o fallido— se consulta después por la misma API.</string>
+    <string name="about_marcadores_titulo">La API en dos líneas</string>
+    <string name="about_marcadores_detalle">POST /api/v1/mensajes\nAuthorization: Bearer ats_…\n{\"destino\": \"+34600000000\", \"texto\": \"Hola\"}\n→ 202 {\"id\": \"…\", \"estado\": \"EN_COLA\"}\n\nGET /api/v1/mensajes/{id}\n→ 200 {\"estado\": \"ENTREGADO\", …}\n\nLotes, cancelación, idempotencia y errores: docs/openapi.yaml en el repositorio.</string>
+    <string name="about_privacidad_titulo">Aviso de privacidad</string>
+    <string name="about_privacidad_detalle">Lee esto antes de poner la aplicación en marcha.\n\nEsta aplicación manda SMS a números de terceros, con textos que escriben otros sistemas. Esas personas no han dado su consentimiento a esta aplicación: lo que se les mande, y con qué base legal, es responsabilidad de quien la usa.\n\nLos números de destino y los textos quedan guardados en este teléfono hasta que los purga la retención configurada, y el registro de auditoría guarda los números, las IP de los clientes y el nombre de cada clave, pero nunca el texto.\n\nLos SMS salen desde la SIM de este teléfono y pasan por tu operador de telefonía, que los cobra según tu tarifa y que, como cualquier operador, puede ver su contenido. Quien los recibe ve el número de esta SIM.\n\nLa API solo escucha en la red local y cifra todo con TLS. No hay ningún servidor intermedio: ni Capicua ni el autor reciben ningún mensaje, número ni clave. La única conexión a internet de la aplicación es la que pregunta a GitHub si hay una versión nueva, y se puede apagar.\n\nQuien instala y configura la aplicación es el único responsable de cumplir la normativa de protección de datos y de comunicaciones comerciales que le sea aplicable.</string>
+    <string name="about_responsabilidad_titulo">Uso bajo tu responsabilidad</string>
+    <string name="about_responsabilidad_detalle">Esta aplicación se entrega «tal cual», sin garantía de ningún tipo. Quien la instala, la configura y la pone en marcha es el único responsable del uso que haga de ella y de cumplir la legislación que le sea aplicable, incluidas la protección de datos y las comunicaciones comerciales no solicitadas. Ni Capicua ni el autor, José Luis Bautista Martín, responden de ningún daño, pérdida o retraso de mensajes, coste, sanción o incumplimiento derivado de su uso, de su mal uso o de la imposibilidad de usarla. Esto incluye expresamente lo que tu operador te cobre por los SMS enviados y cualquier bloqueo que aplique a tu línea por el volumen o el contenido de los envíos, y cualquier acceso indebido a la API por claves mal custodiadas.</string>
+    <string name="about_actualizacion_titulo">Actualizaciones</string>
+    <string name="about_actualizacion_avisos">Comprobar una vez al día</string>
+    <string name="about_actualizacion_buscar">Buscar ahora</string>
+    <string name="about_actualizacion_instalar">Descargar e instalar</string>
+    <string name="about_actualizacion_notas">Ver las notas de esa versión</string>
+    <string name="about_actualizacion_comprobando">Preguntando a GitHub…</string>
+    <string name="about_actualizacion_al_dia">Tienes la última versión publicada (%1$s).</string>
+    <string name="about_actualizacion_disponible">Hay una versión nueva publicada: %1$s. Se instala encima de esta sin perder claves, ajustes, mensajes ni registro, porque va firmada con la misma clave.</string>
+    <string name="about_actualizacion_sin_apk">Hay una versión nueva publicada: %1$s, pero ese release no trae ningún APK. Ábrelo en el navegador para ver qué publica.</string>
+    <string name="about_actualizacion_descargando">Descargando… %1$d %%</string>
+    <string name="about_actualizacion_sin_comprobar">Sin comprobar todavía.</string>
+    <string name="about_actualizacion_apagada">El aviso automático está apagado. Puedes buscar a mano cuando quieras.</string>
+    <string name="about_actualizacion_fallo">No se pudo comprobar: %1$s</string>
+    <string name="about_actualizacion_fallo_descarga">No se pudo descargar: %1$s</string>
+    <string name="about_actualizacion_autorizar">Android necesita que autorices a APItoSMS a instalar aplicaciones. Te llevo a esa pantalla; después vuelve y pulsa otra vez.</string>
+    <string name="about_proyecto_titulo">Código abierto</string>
+    <string name="about_proyecto_detalle">Todo el código de la aplicación está publicado en GitHub, con el registro de cambios, las versiones descargables, la biblioteca de .NET y el sitio donde dar parte de un fallo.</string>
+    <string name="about_proyecto_boton">Ver el proyecto en GitHub</string>
+    <string name="about_donativo_titulo">Apoyar el proyecto</string>
+    <string name="about_donativo_detalle">Esta aplicación es gratuita, sin anuncios y de código abierto. Si te resulta útil, puedes invitarme a un café. Es completamente opcional: la aplicación no insiste ni limita ninguna función.</string>
+    <string name="about_donativo_boton">Invitar a un café</string>
+    <string name="about_sin_navegador">No hay ninguna aplicación en el dispositivo que pueda abrir el enlace.</string>
+    <string name="about_licencia">Distribuido bajo licencia GNU LGPL v2.1\nCopyright © 2026 Capicua</string>
+</resources>

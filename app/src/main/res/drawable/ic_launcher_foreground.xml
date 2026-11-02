@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Primer plano del icono adaptativo: un bocadillo de mensaje con una flecha calada que entra.
+
+    Dice lo que hace la aplicación: una petición **entra** al teléfono y sale convertida en SMS.
+    El bocadillo es el de toda la familia —SMStoSMS, SMStoTelegram, SMStoWhats, SMSRelay— porque
+    lo que sale sigue siendo un SMS; lo que cambia es lo de dentro. Aquellas llevan algo que
+    sale hacia fuera; esta lleva una flecha que apunta hacia dentro del bocadillo.
+
+    **No es el logotipo de nadie.**
+
+    Las piezas son **huecos**, no figuras encima: todas las subrutas van en el mismo `pathData`
+    con `fillType="evenOdd"`, de modo que por ellas se ve el fondo.
+
+    Tres reglas que este dibujo cumple y que cualquier cambio tiene que seguir cumpliendo:
+
+    - **Cada subruta es un polígono simple y ninguna toca a otra.** Bajo `evenOdd` un cruce se
+      cuenta dos veces y vuelve a rellenarse.
+    - **Todo cae dentro del bocadillo**, con margen.
+    - **Todo cabe en los 72 dp centrales** del lienzo de 108, que es la zona que ninguna máscara
+      del lanzador recorta.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!--
+        El dibujo se reduce al 85 % sobre el centro. A tamaño completo el bocadillo casi tocaba
+        el borde de la máscara —la punta quedaba a 6 dp— y el icono se veía apretado al lado de
+        los demás del lanzador. Escalar con un grupo, en vez de reescribir las coordenadas, deja
+        la ruta legible y comparable con la de la capa monocroma, que lleva exactamente la misma.
+    -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.85"
+        android:scaleY="0.85">
+
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M38,26 L70,26 A12,12 0 0 1 82,38 L82,58 A12,12 0 0 1 70,70 L52,70 L38,84 L38,70 A12,12 0 0 1 26,58 L26,38 A12,12 0 0 1 38,26 Z
+                              M34,44 L54,44 L54,35 L72,48 L54,61 L54,52 L34,52 Z" />
+    </group>
+
+</vector>

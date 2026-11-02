@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="logs_total_entradas">
+        <item quantity="one">%d entrada</item>
+        <item quantity="other">%d entradas</item>
+    </plurals>
+
+    <plurals name="panel_claves_activas">
+        <item quantity="one">%d clave activa.</item>
+        <item quantity="other">%d claves activas.</item>
+    </plurals>
+
+    <plurals name="settings_copia_importada">
+        <item quantity="one">Ajustes aplicados y %d clave añadida, revocada. Regenérala en Gestionar claves y reparte el secreto nuevo.</item>
+        <item quantity="other">Ajustes aplicados y %d claves añadidas, revocadas. Regenéralas en Gestionar claves y reparte los secretos nuevos.</item>
+    </plurals>
+</resources>

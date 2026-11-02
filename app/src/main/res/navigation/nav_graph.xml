@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    El grafo solo contiene dos destinos. Las cinco pantallas de primer nivel son páginas del
+    ViewPager2 de HomeFragment; la gestión de claves es una subpantalla porque no cabe en la
+    barra —Material admite cinco items— y porque va detrás de la credencial del teléfono. La
+    acción cuelga de homeFragment: cuando el Panel o Ajustes navegan, el destino actual del
+    NavController es el que aloja el pager.
+-->
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.capicua.apitosms.presentation.home.HomeFragment"
+        android:label="@string/app_name">
+
+        <action
+            android:id="@+id/action_home_a_claves"
+            app:destination="@id/clavesFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/clavesFragment"
+        android:name="com.capicua.apitosms.presentation.claves.ClavesFragment"
+        android:label="@string/claves_titulo" />
+
+</navigation>

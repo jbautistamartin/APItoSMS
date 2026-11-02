@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Paleta de la aplicación.
+
+    El primario es **magenta frambuesa**, el sexto color de la familia: violeta SMSGateway,
+    turquesa SMStoSMS, azul SMStoTelegram, verde SMStoWhats, naranja SMSRelay y magenta
+    APItoSMS. APItoSMS es la única que va en sentido contrario —recibe órdenes y envía SMS—, y
+    suele convivir en el mismo teléfono con SMSRelay: tiene que distinguirse sin leer el nombre.
+    El magenta queda lejos del violeta de SMSGateway y del naranja de SMSRelay.
+
+    **El fondo del icono adaptativo se deriva del primario.** Cambiar uno sin el otro deja el
+    icono contradiciendo a la aplicación que abre.
+
+    Los tonos son los de una paleta tonal de Material 3 —primario en el tono 40, el contenedor en
+    el 90 y su contenido en el 10—, y no el color de marca de ningún servicio. Es un magenta
+    rojizo (~335°): más hacia el rojo se confundiría con el rojo de error.
+-->
+<resources>
+    <color name="md_theme_primary">#A4005F</color>
+    <color name="md_theme_on_primary">#FFFFFF</color>
+    <color name="md_theme_primary_container">#FFD9E4</color>
+    <color name="md_theme_on_primary_container">#3E001C</color>
+    <color name="md_theme_secondary">#74565F</color>
+    <color name="md_theme_on_secondary">#FFFFFF</color>
+    <color name="md_theme_background">#FFFBFF</color>
+    <color name="md_theme_surface">#FFFBFF</color>
+    <color name="md_theme_error">#BA1A1A</color>
+
+    <!--
+        Colores de estado. Son semánticos y **no** siguen al primario: verde es correcto, ámbar
+        es «aún no» y rojo es error en cualquier paleta, y atarlos al color de marca haría que
+        un cambio de identidad cambiara el significado de la interfaz.
+    -->
+    <color name="status_delivered">#186A2E</color>
+    <color name="status_pending">#7B5800</color>
+    <color name="status_failed">#BA1A1A</color>
+    <color name="status_dispatching">#0061A4</color>
+    <color name="status_neutral">#5F5E62</color>
+
+    <!--
+        Indicadores de color por tipo de entrada del registro, con el mismo criterio: azul es
+        «en curso», verde es «hecho», gris es «ya no», rojo es error y el ámbar oscuro marca lo
+        que hay que leer con atención —rechazos y cambios de seguridad—.
+    -->
+    <color name="log_admitido">#0061A4</color>
+    <color name="log_enviado">#186A2E</color>
+    <color name="log_entrega">#186A2E</color>
+    <color name="log_cancelado">#5F5E62</color>
+    <color name="log_rechazado">#8A5000</color>
+    <color name="log_error">#BA1A1A</color>
+    <color name="log_seguridad">#7B5800</color>
+    <color name="log_sistema">#535F70</color>
+</resources>
