@@ -6,7 +6,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace ApiToSms.Cliente.Tests;
+namespace Capicua.ApiToSms.Cliente.Tests;
 
 public class ClienteTests
 {

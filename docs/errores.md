@@ -16,7 +16,7 @@ Todo error llega como `application/problem+json` ([RFC 9457](https://www.rfc-edi
 **Un programa debe mirar `codigo`.** Es estable, va en minúsculas y con guiones, y no cambia entre
 versiones. `title` y `detail` son para una persona y su redacción puede cambiar.
 
-La biblioteca C# (`ApiToSms.Cliente`) convierte cada código en una excepción. Esa conversión
+La biblioteca C# (`Capicua.ApiToSms.Cliente`) convierte cada código en una excepción. Esa conversión
 aparece en la columna «Excepción C#».
 
 | Estado | `codigo` | Excepción C# | ¿Reintentar? |
@@ -58,7 +58,7 @@ La petición HTTP no es válida antes de llegar a la API:
 
 - `501`: trae `Transfer-Encoding` (por ejemplo `chunked`). El cuerpo tiene que ir con
   `Content-Length`. **Cuidado en .NET:** `JsonContent.Create` y `PostAsJsonAsync` mandan *chunked*.
-  Serializa antes a texto o a bytes. `ApiToSms.Cliente` ya lo hace.
+  Serializa antes a texto o a bytes. `Capicua.ApiToSms.Cliente` ya lo hace.
 - `413`: el cuerpo pasa de 1 MB.
 - `431`: más de 64 cabeceras, o más de 16 KB entre todas.
 - `400`: cabecera mal formada, `Content-Length` no válido, o una cabecera que no puede repetirse

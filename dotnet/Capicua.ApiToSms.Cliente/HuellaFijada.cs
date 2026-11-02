@@ -6,7 +6,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace ApiToSms.Cliente;
+namespace Capicua.ApiToSms.Cliente;
 
 /// <summary>
 /// La huella con la que se fija el certificado del teléfono. El Panel de la app enseña las dos

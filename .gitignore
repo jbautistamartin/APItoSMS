@@ -122,4 +122,4 @@ dotnet/**/bin/
 dotnet/**/obj/
 dotnet/**/*.user
 dotnet/.vs/
-dotnet/ApiToSms.Pruebas.Web/conexion.json
+dotnet/Capicua.ApiToSms.Pruebas.Web/conexion.json

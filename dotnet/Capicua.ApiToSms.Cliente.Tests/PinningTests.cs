@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ApiToSms.Cliente.Tests;
+namespace Capicua.ApiToSms.Cliente.Tests;
 
 /// <summary>
 /// El pinning contra un TLS de verdad: un Kestrel en proceso con un certificado autofirmado EC

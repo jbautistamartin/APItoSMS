@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <RootNamespace>ApiToSms.Cliente.Tests</RootNamespace>
+    <RootNamespace>Capicua.ApiToSms.Cliente.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <!-- Kestrel en proceso, para probar el pinning contra un TLS de verdad. -->
@@ -13,7 +13,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../ApiToSms.Cliente/ApiToSms.Cliente.csproj" />
+    <ProjectReference Include="../Capicua.ApiToSms.Cliente/Capicua.ApiToSms.Cliente.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

@@ -6,9 +6,9 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
-using ApiToSms.Cliente;
+using Capicua.ApiToSms.Cliente;
 
-namespace ApiToSms.Pruebas.Web;
+namespace Capicua.ApiToSms.Pruebas.Web;
 
 /// <summary>Un evento para el navegador: <c>mensaje</c>, <c>cola</c> o <c>error</c>.</summary>
 public sealed record Evento(string Tipo, object Datos);

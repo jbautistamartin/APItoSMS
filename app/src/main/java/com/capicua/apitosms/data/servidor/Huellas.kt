@@ -14,7 +14,7 @@ import java.util.Base64
  *
  * - [certificado]: SHA-256 del certificado entero, en hexadecimal con dos puntos
  *   (`1C:6C:F6:…`). Es la que muestra Windows, la que da `openssl x509 -fingerprint -sha256` y la
- *   que compara `ApiToSms.Cliente` con `X509Certificate2.GetCertHashString(SHA256)`.
+ *   que compara `Capicua.ApiToSms.Cliente` con `X509Certificate2.GetCertHashString(SHA256)`.
  * - [clavePublica]: SHA-256 de la clave pública (SPKI), en base64. Es la que pide `curl
  *   --pinnedpubkey sha256//…`. Sobrevive a renovar el certificado con la misma clave, pero aquí
  *   no se renueva nada: regenerar es otra clave.

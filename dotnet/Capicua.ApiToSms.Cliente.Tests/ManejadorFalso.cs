@@ -6,7 +6,7 @@
 using System.Net;
 using System.Text;
 
-namespace ApiToSms.Cliente.Tests;
+namespace Capicua.ApiToSms.Cliente.Tests;
 
 /// <summary>
 /// Un teléfono de mentira: contesta, en orden, las respuestas que se le encolan, y guarda cada

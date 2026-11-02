@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>ApiToSms.Cliente</RootNamespace>
+    <RootNamespace>Capicua.ApiToSms.Cliente</RootNamespace>
     <Description>Biblioteca cliente de APItoSMS: envía SMS a través de un teléfono Android de la red local, con el certificado fijado por su huella.</Description>
     <!-- El XML de documentación viaja con la DLL en el release (decisión I). -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -9,6 +9,6 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="ApiToSms.Cliente.Tests" />
+    <InternalsVisibleTo Include="Capicua.ApiToSms.Cliente.Tests" />
   </ItemGroup>
 </Project>

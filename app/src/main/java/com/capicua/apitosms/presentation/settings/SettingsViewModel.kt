@@ -211,7 +211,7 @@ class SettingsViewModel @Inject constructor(
             if (ip != null && ip !in lectura.nombres) {
                 appendLine()
                 append("⚠ La IP actual del teléfono, $ip, no está entre los nombres del certificado. ")
-                append("Un cliente que compruebe el nombre lo rechazará; ApiToSms.Cliente fija la huella y no lo necesita.")
+                append("Un cliente que compruebe el nombre lo rechazará; Capicua.ApiToSms.Cliente fija la huella y no lo necesita.")
             }
         }.trim()
     }

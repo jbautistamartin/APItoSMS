@@ -6,7 +6,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace ApiToSms.Cliente;
+namespace Capicua.ApiToSms.Cliente;
 
 /// <summary>Registro de <see cref="ClienteApiToSms"/> en un contenedor de dependencias.</summary>
 public static class ServiceCollectionExtensions

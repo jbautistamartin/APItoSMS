@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Capicua.ApiToSms.Cliente/Capicua.ApiToSms.Cliente.csproj" />
+  <Project Path="Capicua.ApiToSms.Pruebas.Web/Capicua.ApiToSms.Pruebas.Web.csproj" />
+  <Project Path="Capicua.ApiToSms.Cliente.Tests/Capicua.ApiToSms.Cliente.Tests.csproj" />
+</Solution>

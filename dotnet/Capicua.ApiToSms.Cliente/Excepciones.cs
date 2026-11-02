@@ -3,7 +3,7 @@
 // Licencia: GNU Lesser General Public License v2.1
 // https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 
-namespace ApiToSms.Cliente;
+namespace Capicua.ApiToSms.Cliente;
 
 /// <summary>
 /// El teléfono contestó con un error. <see cref="Codigo"/> es lo que debe mirar un programa:

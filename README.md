@@ -129,7 +129,7 @@ curl --pinnedpubkey "$PIN" -k "$URL/api/v1/mensajes/<id>" -H "Authorization: Bea
 ### C#
 
 ```csharp
-using ApiToSms.Cliente;
+using Capicua.ApiToSms.Cliente;
 
 using var cliente = ClienteApiToSms.Crear(new OpcionesApiToSms
 {
@@ -151,7 +151,7 @@ Con inyección de dependencias, `builder.Services.AddApiToSms(o => { … })` reg
 y los `429` por ritmo, siempre con la misma `Idempotency-Key`, y convierte cada error de la API
 en una excepción (`ValidacionException`, `LimiteExcedidoException`…).
 
-La DLL (`ApiToSms.Cliente.dll`, con su XML de documentación) va adjunta a cada release, junto al
+La DLL (`Capicua.ApiToSms.Cliente.dll`, con su XML de documentación) va adjunta a cada release, junto al
 APK.
 
 ### PowerShell
@@ -192,7 +192,7 @@ fijaban la anterior dejan de conectar hasta que se les pone la nueva.
 ## La web de pruebas
 
 ```bash
-cd dotnet/ApiToSms.Pruebas.Web
+cd dotnet/Capicua.ApiToSms.Pruebas.Web
 dotnet run
 # → http://127.0.0.1:5080
 ```
@@ -213,7 +213,7 @@ reanuda la cola. Solo escucha en `127.0.0.1`: no tiene autenticación propia y m
 
 cd dotnet
 dotnet test                        # 38 tests de la biblioteca
-dotnet build -c Release ApiToSms.Cliente
+dotnet build -c Release Capicua.ApiToSms.Cliente
 ```
 
 Gradle necesita el **JDK 25** (Temurin) y el SDK con la **plataforma 37**. La firma de release se

@@ -4,9 +4,9 @@
 // https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 
 using System.Text.Json;
-using ApiToSms.Cliente;
+using Capicua.ApiToSms.Cliente;
 
-namespace ApiToSms.Pruebas.Web;
+namespace Capicua.ApiToSms.Pruebas.Web;
 
 /// <summary>Lo que se escribe en el formulario de conexión. La clave vacía conserva la guardada.</summary>
 public sealed record DatosConexion(string? Url, string? Clave, string? Huella);

@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 
 /**
  * El JSON de la API, campo a campo. Es el contrato con los clientes: `docs/openapi.yaml` lo
- * describe y `ApiToSms.Cliente` (C#) lo consume. Un nombre que cambie aquí rompe a los dos.
+ * describe y `Capicua.ApiToSms.Cliente` (C#) lo consume. Un nombre que cambie aquí rompe a los dos.
  *
  * Los instantes van como texto ISO 8601 en UTC (`2026-11-01T18:30:00Z`).
  */

@@ -39,8 +39,8 @@ workers son como son se lee en SMSRelay. **Lo que diga este fichero gana sobre e
 apksigner verify --print-certs app/build/outputs/apk/release/apitosms-<ver>.apk   # 1C:6C:F6:…:EC:CA
 
 # .NET
-cd dotnet && dotnet test                   # 38 tests de ApiToSms.Cliente
-dotnet run --project dotnet/ApiToSms.Pruebas.Web   # http://127.0.0.1:5080
+cd dotnet && dotnet test                   # 38 tests de Capicua.ApiToSms.Cliente
+dotnet run --project dotnet/Capicua.ApiToSms.Pruebas.Web   # http://127.0.0.1:5080
 
 # Preparar el teléfono
 adb shell pm grant com.capicua.apitosms android.permission.SEND_SMS
@@ -113,7 +113,7 @@ Kotlin puro, probado en la JVM con los dobles de `app/src/test/.../Dobles.kt`, q
 consultas del DAO. El contrato está en `docs/openapi.yaml` y los errores en `docs/errores.md`;
 **`ContratoOpenApiTest` falla si `ApiDeMensajes.RUTAS` y el YAML no tienen las mismas rutas**, o si
 los estados del YAML no son los del enum. Una ruta nueva va en los dos sitios y en
-`ApiToSms.Cliente`.
+`Capicua.ApiToSms.Cliente`.
 
 - **Los nombres del JSON (`domain/api/Json.kt`) y los de `EstadoMensaje` son el contrato.** Viajan
   tal cual, y los estados se guardan como texto en Room: renombrar uno rompe a los clientes y a la
@@ -230,11 +230,14 @@ cuatro líneas** con `APItoSMS para Android` en la primera; todo `.cs`, la misma
 
 ## `dotnet/`
 
+Todo proyecto .NET empieza por **`Capicua.`**, el nombre de la empresa, en carpeta, ensamblado y
+*namespace*. Los tests no van al release.
+
 | Proyecto | Qué es |
 |---|---|
-| `ApiToSms.Cliente` | La biblioteca. `ClienteApiToSms` + `AddApiToSms`. Va al release como DLL con su XML (decisión I) |
-| `ApiToSms.Pruebas.Web` | La web de pruebas. Solo `127.0.0.1:5080`; `conexion.json` lleva la clave en claro y está en `.gitignore` |
-| `ApiToSms.Cliente.Tests` | xUnit: protocolo con `ManejadorFalso`, *pinning* contra un Kestrel con TLS |
+| `Capicua.ApiToSms.Cliente` | La biblioteca. `ClienteApiToSms` + `AddApiToSms`. Va al release como DLL con su XML (decisión I) |
+| `Capicua.ApiToSms.Pruebas.Web` | La web de pruebas. Solo `127.0.0.1:5080`; `conexion.json` lleva la clave en claro y está en `.gitignore`. Va al release autocontenida, `win-x64` y `linux-x64` |
+| `Capicua.ApiToSms.Cliente.Tests` | xUnit: protocolo con `ManejadorFalso`, *pinning* contra un Kestrel con TLS |
 
 - **El *pinning* no mira cadena ni nombre**: solo que la huella (del certificado o de la clave
   pública) coincida, en tiempo constante. Sin huella, validación normal del sistema.

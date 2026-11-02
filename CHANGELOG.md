@@ -43,6 +43,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
   hash de cada clave y el `.p12` importado con su contraseña, y un teléfono de repuesto se monta
   importando un solo fichero: los sistemas no cambian ni la clave ni la huella. El certificado
   generado en el teléfono no viaja nunca.
-- **Biblioteca C# `ApiToSms.Cliente`** (`dotnet/`): fija el certificado, pone la
+- **Biblioteca C# `Capicua.ApiToSms.Cliente`** (`dotnet/`): fija el certificado, pone la
   `Idempotency-Key`, reintenta lo que es seguro reintentar, convierte cada error en una excepción
   y espera el resultado de un mensaje. Y una **web de pruebas** que la usa.

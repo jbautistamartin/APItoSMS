@@ -320,19 +320,23 @@ mientras no esté hecha.
 
 ### Fase 8 — Herramientas C# · `[x]`
 
-Carpeta `dotnet/`, solución `ApiToSms.slnx`, `net10.0`, con la cabecera LGPL en cada `.cs`.
+Carpeta `dotnet/`, solución `Capicua.ApiToSms.slnx`, `net10.0`, con la cabecera LGPL en cada `.cs`.
 **Sin simulador del teléfono** (decisión F): la biblioteca se prueba con tests unitarios y la web,
 contra el teléfono.
 
 | Proyecto | Qué es |
 |---|---|
-| **`ApiToSms.Cliente`** | Biblioteca: `ClienteApiToSms` con `EnviarAsync`, `EnviarLoteAsync`, `ConsultarAsync`, `ListarAsync`/`ListarTodosAsync`, `EsperarResultadoAsync` (sondeo con backoff), `CancelarAsync`, `EstadoColaAsync`, `PausarAsync`/`ReanudarAsync`, y `AddApiToSms` para inyección de dependencias. Hace el *pinning* de la huella (la del certificado o la de la clave pública) en el `RemoteCertificateValidationCallback`, pone el `Idempotency-Key` y reintenta solo lo que es seguro reintentar. La que copiaría la empresa en sus sistemas |
-| **`ApiToSms.Pruebas.Web`** | La web de pruebas. ASP.NET Core con `wwwroot` estático, igual que el `test-server` de SMSRelay. Configurar URL, clave y huella; enviar uno; **generar lotes** (N mensajes a una lista de números); tabla con el estado de cada uno, en vivo (el backend sondea y lo empuja por SSE); ver la cola; pausar y reanudar. El navegador no habla con el teléfono: lo hace el backend con la biblioteca, porque un navegador no puede fijar un certificado autofirmado |
+| **`Capicua.ApiToSms.Cliente`** | Biblioteca: `ClienteApiToSms` con `EnviarAsync`, `EnviarLoteAsync`, `ConsultarAsync`, `ListarAsync`/`ListarTodosAsync`, `EsperarResultadoAsync` (sondeo con backoff), `CancelarAsync`, `EstadoColaAsync`, `PausarAsync`/`ReanudarAsync`, y `AddApiToSms` para inyección de dependencias. Hace el *pinning* de la huella (la del certificado o la de la clave pública) en el `RemoteCertificateValidationCallback`, pone el `Idempotency-Key` y reintenta solo lo que es seguro reintentar. La que copiaría la empresa en sus sistemas |
+| **`Capicua.ApiToSms.Pruebas.Web`** | La web de pruebas. ASP.NET Core con `wwwroot` estático, igual que el `test-server` de SMSRelay. Configurar URL, clave y huella; enviar uno; **generar lotes** (N mensajes a una lista de números); tabla con el estado de cada uno, en vivo (el backend sondea y lo empuja por SSE); ver la cola; pausar y reanudar. El navegador no habla con el teléfono: lo hace el backend con la biblioteca, porque un navegador no puede fijar un certificado autofirmado |
 | ~~**`ApiToSms.Certificado`**~~ | **No se hace** (decisión L): la empresa tiene su propia CA, y el `.p12` que emite se importa en Ajustes |
-| **`ApiToSms.Cliente.Tests`** | xUnit de la biblioteca: el protocolo con un `HttpMessageHandler` falso (reintentos, `Idempotency-Key`, `Retry-After`, `Content-Length`, errores a excepciones, sondeo), y el *pinning* contra un Kestrel en proceso con un certificado creado en el propio test (huella buena acepta, huella mala rechaza) |
+| **`Capicua.ApiToSms.Cliente.Tests`** | xUnit de la biblioteca: el protocolo con un `HttpMessageHandler` falso (reintentos, `Idempotency-Key`, `Retry-After`, `Content-Length`, errores a excepciones, sondeo), y el *pinning* contra un Kestrel en proceso con un certificado creado en el propio test (huella buena acepta, huella mala rechaza) |
 
-- **Distribución** (decisión I): `ApiToSms.Cliente.dll` se adjunta al release de GitHub, junto
-  al APK, con su XML de documentación.
+- **Distribución** (decisión I): `Capicua.ApiToSms.Cliente.dll` se adjunta al release de GitHub, junto
+  al APK, con su XML de documentación; y la web de pruebas, **autocontenida** para `win-x64` y
+  `linux-x64` (un zip cada una), para probar el teléfono sin instalar .NET. Los tests no van.
+- **Espacio de nombres `Capicua.`** (2 nov 2026): todo proyecto .NET de la empresa empieza por
+  `Capicua.`; se renombraron carpetas, `.csproj`, solución y *namespaces* de `ApiToSms.*` a
+  `Capicua.ApiToSms.*`. Las clases (`ClienteApiToSms`, `AddApiToSms`) no cambiaron.
 - **Cierre:** los tests pasan, y la web de pruebas manda un lote de 20 al teléfono y los ve
   terminar.
 - **Cerrada con un lote de 3, no de 20:** todo SMS de prueba va al número del dueño, así que se
@@ -380,8 +384,10 @@ Y después, la publicación:
 1. ~~Crear `github.com/jbautistamartin/APItoSMS`~~ — hecho el 1 nov 2026, antes de la release
    (decisión G). Al publicar, `main` recibe el código y vuelve a ser la rama por defecto.
 2. El procedimiento de siempre: `CHANGELOG`, `assembleRelease`, huella del APK con `apksigner`.
-3. `dotnet build -c Release` de `ApiToSms.Cliente`.
-4. `gh release create v1.0.0` con **el APK y la DLL**.
+3. `dotnet build -c Release` de `Capicua.ApiToSms.Cliente`, y `dotnet publish -c Release -r <rid>
+   --self-contained` de `Capicua.ApiToSms.Pruebas.Web` para `win-x64` y `linux-x64`, cada una en su zip.
+4. `gh release create v1.0.0` con **el APK, la DLL y los dos zips de la web**.
+5. Copiarlo también a `C:\Proyectos\releases\SMS` y poner al día su `README.md`.
 
 ---
 
@@ -514,7 +520,7 @@ Tomadas el 1 nov 2026.
 | **F** | Simulador del teléfono en C# | **No**: la biblioteca se prueba con tests unitarios y la web contra el teléfono | Simulador que imita la API |
 | **G** | Repositorio en GitHub | **Al acabar la fase 9** (1 nov 2026; se pensó para la 1.0.0 y el usuario lo adelantó), público, con `develop` por defecto hasta la release | Al cerrar la fase 1, o al publicar |
 | **H** | SIM de salida | **Un ajuste global**, como en SMSRelay | Campo `sim` por petición |
-| **I** | Cómo llega la biblioteca C# a la empresa | **DLL adjunta al release de GitHub**, junto al APK | NuGet público, o copiar el proyecto |
+| **I** | Cómo llega la biblioteca C# a la empresa | **DLL adjunta al release de GitHub**, junto al APK, con la web de pruebas autocontenida (`win-x64`, `linux-x64`) | NuGet público, o copiar el proyecto |
 | **J** | Origen del certificado TLS | **Los dos**: generado por el teléfono por defecto, o importado (`.p12`) | Solo uno de ellos |
 | **K** | Los cinco masterplans anteriores | **No se copian**: este es el único plan del repositorio | Copiarlos como historia |
 | **L** | Generador de certificados en C# | **No** (1 nov 2026): la empresa tiene su propia CA | `ApiToSms.Certificado`, que llegó a escribirse y se retiró antes del primer commit |

@@ -4,8 +4,8 @@
 // https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 
 using System.Text.Json;
-using ApiToSms.Cliente;
-using ApiToSms.Pruebas.Web;
+using Capicua.ApiToSms.Cliente;
+using Capicua.ApiToSms.Pruebas.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 

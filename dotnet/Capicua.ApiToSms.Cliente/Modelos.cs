@@ -5,7 +5,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace ApiToSms.Cliente;
+namespace Capicua.ApiToSms.Cliente;
 
 /// <summary>
 /// Estado de un mensaje en el teléfono. El nombre que viaja en el JSON es el de la API

@@ -12,7 +12,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
-namespace ApiToSms.Cliente;
+namespace Capicua.ApiToSms.Cliente;
 
 /// <summary>
 /// Cliente de la API de un teléfono APItoSMS.
@@ -45,7 +45,7 @@ public sealed class ClienteApiToSms : IDisposable
     };
 
     private static readonly string AgenteDeUsuario =
-        $"ApiToSms.Cliente/{typeof(ClienteApiToSms).Assembly.GetName().Version?.ToString(3)}";
+        $"Capicua.ApiToSms.Cliente/{typeof(ClienteApiToSms).Assembly.GetName().Version?.ToString(3)}";
 
     private readonly HttpClient _http;
     private readonly OpcionesApiToSms _opciones;
