@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    El Panel. De arriba abajo, por orden de lo que se mira primero: si el servidor escucha y en
-    qué dirección, lo que necesita un cliente para conectarse (huellas y QR), la cola, y al
-    final los avisos de lo que está mal configurado.
+    El Panel. De arriba abajo: los avisos de lo que está mal configurado (solo si los hay, porque
+    explican por qué no sale nada), si el servidor escucha y en qué dirección, lo que necesita un
+    cliente para conectarse (las huellas), la cola y las claves.
 -->
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"

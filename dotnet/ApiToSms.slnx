@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ApiToSms.Cliente/ApiToSms.Cliente.csproj" />
+  <Project Path="ApiToSms.Pruebas.Web/ApiToSms.Pruebas.Web.csproj" />
+  <Project Path="ApiToSms.Cliente.Tests/ApiToSms.Cliente.Tests.csproj" />
+</Solution>

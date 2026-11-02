@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>ApiToSms.Pruebas.Web</RootNamespace>
+    <Description>Web de pruebas de APItoSMS: envía mensajes y lotes al teléfono con la biblioteca cliente y sigue su estado en vivo por Server-Sent Events.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ApiToSms.Cliente/ApiToSms.Cliente.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,18 @@
+<Project>
+  <!-- Común a los cuatro proyectos de dotnet/. La licencia es la de toda la familia SMS. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Autoría -->
+    <Authors>José Luis Bautista Martín</Authors>
+    <Company>Capicua</Company>
+    <Copyright>Copyright © 2026 Capicua</Copyright>
+    <PackageLicenseExpression>LGPL-2.1-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/jbautistamartin/APItoSMS</RepositoryUrl>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+</Project>

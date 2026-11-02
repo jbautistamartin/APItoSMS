@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  APItoSMS — Web de pruebas
+  Copyright © 2026 Capicua · José Luis Bautista Martín
+  Licencia: GNU Lesser General Public License v2.1
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APItoSMS · pruebas</title>
+<style>
+  :root { --primario:#A4005F; --contenedor:#FFD9E4; --texto:#201A1B; --suave:#74565F; --fondo:#FFFBFF; --borde:#D6C2C7;
+          --ok:#2E7D32; --mal:#B3261E; --aviso:#8A5300; --neutro:#5F5E62; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.45 system-ui, sans-serif; color:var(--texto); background:var(--fondo); }
+  header { background:var(--primario); color:#fff; padding:14px 20px; display:flex; gap:16px; align-items:baseline; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; }
+  header span { opacity:.85; font-size:13px; }
+  main { max-width:1200px; margin:0 auto; padding:16px; display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); }
+  section { border:1px solid var(--borde); border-radius:12px; padding:16px; background:#fff; }
+  section.ancha { grid-column:1/-1; }
+  h2 { margin:0 0 12px; font-size:16px; color:var(--primario); }
+  label { display:block; font-size:12px; color:var(--suave); margin:8px 0 2px; }
+  input, textarea, select { width:100%; padding:8px; border:1px solid var(--borde); border-radius:8px; font:inherit; }
+  textarea { min-height:64px; resize:vertical; }
+  .fila { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+  button { padding:8px 14px; border:0; border-radius:20px; background:var(--primario); color:#fff; font:inherit; cursor:pointer; }
+  button.tonal { background:var(--contenedor); color:#3E001C; }
+  button:disabled { opacity:.5; cursor:default; }
+  .estado-cola { font-size:14px; }
+  .estado-cola b { font-size:20px; }
+  .resultado { font-size:13px; min-height:1.4em; margin-top:8px; white-space:pre-wrap; }
+  .resultado.mal { color:var(--mal); }
+  .resultado.ok { color:var(--ok); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--borde); vertical-align:top; }
+  th { color:var(--suave); font-weight:600; }
+  td.mono { font-family:ui-monospace, monospace; font-size:12px; }
+  .chip { display:inline-block; padding:1px 8px; border-radius:10px; color:#fff; font-size:12px; }
+  .EN_COLA, .ENVIANDO { background:var(--aviso); }
+  .ENVIADO { background:var(--neutro); }
+  .ENTREGADO { background:var(--ok); }
+  .NO_ENTREGADO, .FALLIDO { background:var(--mal); }
+  .CANCELADO, .CADUCADO { background:#9E9E9E; }
+  .resumen { display:flex; gap:12px; flex-wrap:wrap; font-size:13px; color:var(--suave); margin-bottom:8px; }
+  .pista { font-size:12px; color:var(--suave); }
+  .tabla { overflow-x:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>APItoSMS · pruebas</h1>
+  <span id="cabecera">sin conexión</span>
+</header>
+<main>
+  <section>
+    <h2>Conexión con el teléfono</h2>
+    <label for="url">URL (la del Panel)</label>
+    <input id="url" placeholder="https://192.168.1.50:8443">
+    <label for="clave">Clave de la API</label>
+    <input id="clave" type="password" autocomplete="off" placeholder="ats_…">
+    <label for="huella">Huella del certificado o de la clave pública</label>
+    <input id="huella" placeholder="AB:CD:… o sha256//…">
+    <p class="pista">Sin huella se usa la validación normal del sistema: solo vale con un certificado firmado por una CA en la que confíe este equipo.</p>
+    <div class="fila"><button id="guardar">Guardar y probar</button></div>
+    <div class="resultado" id="res-conexion"></div>
+  </section>
+
+  <section>
+    <h2>Un mensaje</h2>
+    <label for="destino">Destino</label>
+    <input id="destino" placeholder="+523311298770">
+    <label for="texto">Texto</label>
+    <textarea id="texto">Prueba de APItoSMS</textarea>
+    <label for="referencia">Referencia (opcional)</label>
+    <input id="referencia">
+    <div class="fila"><button id="enviar">Enviar</button></div>
+    <div class="resultado" id="res-enviar"></div>
+  </section>
+
+  <section>
+    <h2>Lote</h2>
+    <label for="destinos">Destinos, uno por línea (se reparten en orden)</label>
+    <textarea id="destinos" placeholder="+523311298770"></textarea>
+    <label for="cantidad">Cuántos mensajes</label>
+    <input id="cantidad" type="number" min="1" max="1000" value="5">
+    <label for="texto-lote">Texto ({n} es el número de mensaje)</label>
+    <textarea id="texto-lote">Lote de prueba, mensaje {n}</textarea>
+    <div class="fila"><button id="lote">Enviar lote</button></div>
+    <div class="resultado" id="res-lote"></div>
+  </section>
+
+  <section>
+    <h2>Cola</h2>
+    <div class="estado-cola" id="cola">—</div>
+    <div class="fila">
+      <button id="pausar" class="tonal">Pausar</button>
+      <button id="reanudar" class="tonal">Reanudar</button>
+    </div>
+    <p class="pista">Pausar y reanudar necesitan una clave con el ámbito ADMIN.</p>
+    <div class="resultado" id="res-cola"></div>
+  </section>
+
+  <section class="ancha">
+    <h2>Mensajes enviados desde aquí</h2>
+    <div class="resumen" id="resumen"></div>
+    <div class="fila" style="margin:0 0 8px"><button id="limpiar" class="tonal">Vaciar la tabla</button></div>
+    <div class="tabla">
+      <table>
+        <thead><tr><th>Estado</th><th>Destino</th><th>Texto</th><th>Referencia</th><th>Intentos</th><th>Admitido</th><th>Enviado</th><th>Error</th><th>Id</th><th></th></tr></thead>
+        <tbody id="filas"></tbody>
+      </table>
+    </div>
+    <p class="pista">ENVIADO puede ser el estado final: hay operadores que no mandan informes de entrega.</p>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const mensajes = new Map();
+
+async function pedir(metodo, ruta, cuerpo) {
+  const r = await fetch(ruta, {
+    method: metodo,
+    headers: cuerpo ? { 'Content-Type': 'application/json' } : {},
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined
+  });
+  const datos = r.status === 204 ? null : await r.json().catch(() => null);
+  if (!r.ok) {
+    const e = new Error(datos?.error ?? `HTTP ${r.status}`);
+    e.datos = datos;
+    throw e;
+  }
+  return datos;
+}
+
+function resultado(id, texto, ok) {
+  const el = $(id);
+  el.textContent = texto;
+  el.className = 'resultado ' + (ok ? 'ok' : 'mal');
+}
+
+function textoDeError(e) {
+  const d = e.datos;
+  let t = e.message;
+  if (d?.codigo) t = `[${d.codigo}] ` + t;
+  if (d?.errores?.length) t += '\n' + d.errores.map(x => (x.indice != null ? `#${x.indice} ` : '') + `${x.campo}: ${x.motivo}`).join('\n');
+  return t;
+}
+
+async function accion(boton, idResultado, fn) {
+  boton.disabled = true;
+  try { resultado(idResultado, await fn(), true); }
+  catch (e) { resultado(idResultado, textoDeError(e), false); }
+  finally { boton.disabled = false; }
+}
+
+// ── Conexión ──
+async function cargarConexion() {
+  const c = await pedir('GET', '/conexion');
+  $('url').value = c.url ?? '';
+  $('huella').value = c.huella ?? '';
+  $('clave').placeholder = c.tieneClave ? `guardada (${c.claveVisible}); vacío para conservarla` : 'ats_…';
+  $('cabecera').textContent = c.url ? c.url : 'sin conexión';
+}
+
+$('guardar').onclick = () => accion($('guardar'), 'res-conexion', async () => {
+  const r = await pedir('POST', '/conexion', { url: $('url').value, clave: $('clave').value, huella: $('huella').value });
+  $('clave').value = '';
+  await cargarConexion();
+  return `Conectado: APItoSMS ${r.version}`;
+});
+
+// ── Envío ──
+$('enviar').onclick = () => accion($('enviar'), 'res-enviar', async () => {
+  const m = await pedir('POST', '/enviar', { destino: $('destino').value, texto: $('texto').value, referencia: $('referencia').value });
+  return `Admitido ${m.id}` + (m.posicionEnCola ? `, posición ${m.posicionEnCola} en la cola` : '');
+});
+
+$('lote').onclick = () => accion($('lote'), 'res-lote', async () => {
+  const destinos = $('destinos').value.split('\n');
+  const lista = await pedir('POST', '/lote', { destinos, cantidad: Number($('cantidad').value), texto: $('texto-lote').value });
+  return `Admitidos ${lista.length} mensajes`;
+});
+
+// ── Cola ──
+function pintarCola(c) {
+  const el = $('cola');
+  el.replaceChildren();
+  const b = document.createElement('b');
+  b.textContent = c.pausada ? 'Pausada' : (c.enCola + c.enviando === 0 ? 'Vacía' : 'En marcha');
+  el.append(b, document.createElement('br'));
+  const cuota = q => q ? (q.limite ? `${q.usadas}/${q.limite}` : `${q.usadas} (sin límite)`) : '—';
+  el.append(`${c.enCola} en cola · ${c.enviando} enviando · pausa ${c.pausaEntreMensajesSegundos} s`);
+  el.append(document.createElement('br'));
+  el.append(`Cuota hoy: teléfono ${cuota(c.cuotaGlobal)} · clave ${cuota(c.cuotaClave)}`);
+}
+
+$('pausar').onclick = () => accion($('pausar'), 'res-cola', async () => { pintarCola(await pedir('POST', '/cola/pausa')); return 'Cola pausada'; });
+$('reanudar').onclick = () => accion($('reanudar'), 'res-cola', async () => { pintarCola(await pedir('POST', '/cola/reanudar')); return 'Cola reanudada'; });
+
+// ── Tabla ──
+const hora = t => t ? new Date(t).toLocaleTimeString() : '';
+
+function pintarTabla() {
+  const filas = [...mensajes.values()].sort((a, b) => (b.admitidoEn.localeCompare(a.admitidoEn)) || b.id.localeCompare(a.id));
+  const cuerpo = $('filas');
+  cuerpo.replaceChildren();
+  const cuenta = {};
+  for (const m of filas) {
+    cuenta[m.estado] = (cuenta[m.estado] ?? 0) + 1;
+    const tr = document.createElement('tr');
+    const celda = (texto, clase) => { const td = document.createElement('td'); td.textContent = texto ?? ''; if (clase) td.className = clase; tr.append(td); return td; };
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + m.estado;
+    chip.textContent = m.estado + (m.posicionEnCola ? ` #${m.posicionEnCola}` : '');
+    celda('').append(chip);
+    celda(m.destino, 'mono');
+    celda(m.texto);
+    celda(m.referencia);
+    celda(String(m.intentos));
+    celda(hora(m.admitidoEn));
+    celda(hora(m.enviadoEn) + (m.entregadoEn ? ` → ${hora(m.entregadoEn)}` : ''));
+    celda(m.ultimoError);
+    celda(m.id, 'mono');
+    const td = celda('');
+    if (m.estado === 'EN_COLA') {
+      const b = document.createElement('button');
+      b.className = 'tonal';
+      b.textContent = 'Cancelar';
+      b.onclick = async () => { b.disabled = true; try { await pedir('DELETE', '/mensajes/' + encodeURIComponent(m.id)); } catch (e) { alert(textoDeError(e)); b.disabled = false; } };
+      td.append(b);
+    }
+    cuerpo.append(tr);
+  }
+  $('resumen').textContent = Object.entries(cuenta).map(([e, n]) => `${e}: ${n}`).join(' · ');
+}
+
+$('limpiar').onclick = async () => { await pedir('POST', '/seguimiento/limpiar'); mensajes.clear(); pintarTabla(); };
+
+// ── Eventos ──
+let pendiente = false;
+function repintar() { if (!pendiente) { pendiente = true; requestAnimationFrame(() => { pendiente = false; pintarTabla(); }); } }
+
+const eventos = new EventSource('/eventos');
+eventos.addEventListener('mensaje', e => { const m = JSON.parse(e.data); mensajes.set(m.id, m); repintar(); });
+eventos.addEventListener('cola', e => pintarCola(JSON.parse(e.data)));
+eventos.addEventListener('error', e => { if (e.data) resultado('res-cola', JSON.parse(e.data).error, false); });
+
+cargarConexion().catch(() => {});
+</script>
+</body>
+</html>
