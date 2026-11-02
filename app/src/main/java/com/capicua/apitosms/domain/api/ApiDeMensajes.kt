@@ -266,7 +266,7 @@ class ApiDeMensajes(
             }
             comprobarCuota(clave, nuevo.partes, ahora)
 
-            val mensaje = nuevo.aMensaje(nuevoId(), clave, idempotencia, ahora)
+            val mensaje = nuevo.aMensaje(nuevoId(), clave, idempotencia, p.ip.hostAddress, ahora)
             mensajes.insertarTodos(listOf(mensaje))
             registrarAdmitido(p, clave, mensaje)
             cola.despertar()
@@ -322,6 +322,7 @@ class ApiDeMensajes(
                     id = "$prefijo-${i.toString().padStart(3, '0')}",
                     clave = clave,
                     idempotencia = idempotencia?.let { "$it#$i" },
+                    ip = p.ip.hostAddress,
                     ahora = ahora
                 )
             }
@@ -430,7 +431,7 @@ class ApiDeMensajes(
         val partes: Int,
         val huella: String
     ) {
-        fun aMensaje(id: String, clave: ClaveApi, idempotencia: String?, ahora: Instant) = MensajeSaliente(
+        fun aMensaje(id: String, clave: ClaveApi, idempotencia: String?, ip: String?, ahora: Instant) = MensajeSaliente(
             id = id,
             destino = destino,
             texto = texto,
@@ -439,6 +440,7 @@ class ApiDeMensajes(
             idempotencyKey = idempotencia,
             huellaPeticion = huella,
             referencia = referencia,
+            ipOrigen = ip,
             partes = partes,
             admitidoEn = ahora,
             caducaEn = caducaEn

@@ -49,7 +49,8 @@ data class MensajeEntity(
     @ColumnInfo(name = "enviado_en") val enviadoEn: Long?,
     @ColumnInfo(name = "entregado_en") val entregadoEn: Long?,
     @ColumnInfo(name = "caduca_en") val caducaEn: Long?,
-    @ColumnInfo(name = "actualizado_en") val actualizadoEn: Long
+    @ColumnInfo(name = "actualizado_en") val actualizadoEn: Long,
+    @ColumnInfo(name = "ip_origen") val ipOrigen: String? = null
 )
 
 /**

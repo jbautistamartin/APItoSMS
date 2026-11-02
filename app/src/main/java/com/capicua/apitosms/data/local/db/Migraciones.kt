@@ -6,17 +6,24 @@
 package com.capicua.apitosms.data.local.db
 
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * Migraciones del esquema, escritas a mano y registradas en `DatabaseModule`.
  *
- * Vacío porque el esquema nace en la versión 1 (ver [ApiToSmsDatabase]). Deja de poder estarlo en
- * cuanto la aplicación se instale con mensajes dentro: a partir de ahí, **cada cambio de esquema
- * sube la versión y añade aquí su `Migration`**, y cambiar la v1 en sitio hace que Room aborte al
- * abrir la base de quien ya la tenía.
+ * Desde que la aplicación se instaló con mensajes dentro, **cada cambio de esquema sube la versión
+ * y añade aquí su `Migration`**: cambiar una versión en sitio hace que Room aborte al abrir la base
+ * de quien ya la tenía.
  */
 object Migraciones {
 
-    /** Todas las migraciones conocidas, en orden. Vacío mientras el esquema siga en la v1. */
-    val TODAS: Array<Migration> = emptyArray()
+    /** v1 → v2: la IP desde la que se pidió cada mensaje. Los anteriores quedan con null. */
+    val DE_1_A_2 = object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE mensajes ADD COLUMN ip_origen TEXT")
+        }
+    }
+
+    /** Todas las migraciones conocidas, en orden. */
+    val TODAS: Array<Migration> = arrayOf(DE_1_A_2)
 }

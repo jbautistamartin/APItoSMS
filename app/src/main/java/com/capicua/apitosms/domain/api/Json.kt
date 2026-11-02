@@ -58,6 +58,8 @@ data class MensajeJson(
     val enviadoEn: String? = null,
     val entregadoEn: String? = null,
     val caducaEn: String? = null,
+    /** La IP desde la que se pidió. */
+    val ipOrigen: String? = null,
     /** Solo en `EN_COLA`: 1 es el siguiente en salir. */
     val posicionEnCola: Int? = null
 ) {
@@ -76,6 +78,7 @@ data class MensajeJson(
             enviadoEn = m.enviadoEn?.toString(),
             entregadoEn = m.entregadoEn?.toString(),
             caducaEn = m.caducaEn?.toString(),
+            ipOrigen = m.ipOrigen,
             posicionEnCola = posicion
         )
     }

@@ -202,6 +202,7 @@ class ProcesadorDeCola(
                 mensajeId = mensaje.id,
                 destino = mensaje.destino,
                 clave = mensaje.claveNombre,
+                ip = mensaje.ipOrigen,
                 detalle = detalle,
                 timestamp = reloj.ahora()
             )

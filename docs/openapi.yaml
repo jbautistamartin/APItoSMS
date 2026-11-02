@@ -281,6 +281,7 @@ components:
         enviadoEn: { type: string, format: date-time }
         entregadoEn: { type: string, format: date-time }
         caducaEn: { type: string, format: date-time }
+        ipOrigen: { type: string, description: La IP desde la que se pidió. Ausente en los mensajes de antes de la 1.0.0. }
         posicionEnCola: { type: integer, description: Solo en EN_COLA; 1 es el siguiente. }
 
     Pagina:

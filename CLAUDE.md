@@ -30,7 +30,7 @@ workers son como son se lee en SMSRelay. **Lo que diga este fichero gana sobre e
 ```bash
 ./gradlew assembleDebug
 ./gradlew installDebug                     # com.capicua.apitosms.debug, convive con la release
-./gradlew test                             # 90 tests JVM, diez clases
+./gradlew test                             # 91 tests JVM, diez clases
 ./gradlew test --tests "com.capicua.apitosms.domain.api.ApiDeMensajesTest"
 
 # Release: claves en local.properties, igual que las otras cinco
@@ -222,9 +222,9 @@ cuatro líneas** con `APItoSMS para Android` en la primera; todo `.cs`, la misma
 - **El icono es magenta/frambuesa, tono 40** (`#A4005F`; el degradado del fondo, `#C8287A` →
   `#64003A`), con la flecha que **entra** al bocadillo. **El fondo del icono y `md_theme_primary` se
   cambian juntos**, y la capa monocroma también.
-- **`Migraciones.TODAS` está vacío y el esquema es v1.** Desde que la app se instaló en el teléfono
-  de pruebas con datos dentro, cambiar la v1 sin migración hace que Room aborte. Todo cambio de
-  esquema sube la versión y escribe su `Migration`.
+- **El esquema es v2** (`Migraciones.DE_1_A_2` añade `ip_origen` a `mensajes`). Desde que la app
+  se instaló en el teléfono de pruebas con datos dentro, cambiar una versión sin migración hace que
+  Room aborte. Todo cambio de esquema sube la versión y escribe su `Migration`.
 - **Los tests son JVM puro.** Lo que decide —la API, la cola, la seguridad, el lector HTTP, la copia,
   el validador— está separado de Android para poder probarse. Mantén esa separación.
 

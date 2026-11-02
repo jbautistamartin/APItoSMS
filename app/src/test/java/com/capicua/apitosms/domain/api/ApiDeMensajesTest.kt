@@ -242,6 +242,18 @@ class ApiDeMensajesTest {
     }
 
     @Test
+    fun `cada mensaje guarda la IP desde la que se pidió`() = runTest {
+        val (_, uno) = pedir("POST", "/api/v1/mensajes", """{"destino":"600000001","texto":"a"}""", ip = "192.168.1.77")
+        val (_, lote) = pedir("POST", "/api/v1/lotes",
+            """{"mensajes":[{"destino":"600000002","texto":"b"},{"destino":"600000003","texto":"c"}]}""", ip = "192.168.1.78")
+
+        assertEquals("192.168.1.77", uno!!.texto("ipOrigen"))
+        assertEquals("192.168.1.77", almacen.obtener(uno.texto("id")!!)!!.ipOrigen)
+        val delLote = lote!!["mensajes"]!!.jsonArray.map { it.jsonObject }
+        assertEquals(listOf("192.168.1.78", "192.168.1.78"), delLote.map { it.texto("ipOrigen") })
+    }
+
+    @Test
     fun `un lote con un mensaje malo no admite ninguno`() = runTest {
         val (r, j) = pedir("POST", "/api/v1/lotes",
             """{"mensajes":[{"destino":"600000001","texto":"a"},{"destino":"x","texto":"b"}]}""")

@@ -62,7 +62,7 @@ class EntregaReceiver : BroadcastReceiver() {
                 if (actualizado.estado != mensaje.estado) {
                     registro.registrar(LogEntry(
                         tipo = LogTipo.ENTREGA, mensajeId = id, destino = mensaje.destino,
-                        clave = mensaje.claveNombre, timestamp = ahora,
+                        clave = mensaje.claveNombre, ip = mensaje.ipOrigen, timestamp = ahora,
                         detalle = if (actualizado.estado == EstadoMensaje.ENTREGADO) {
                             "Entregado en el teléfono de destino"
                         } else {

@@ -33,7 +33,7 @@ import com.capicua.apitosms.data.local.db.entity.MensajeEntity
  */
 @Database(
     entities = [MensajeEntity::class, ClaveEntity::class, LogEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class ApiToSmsDatabase : RoomDatabase() {

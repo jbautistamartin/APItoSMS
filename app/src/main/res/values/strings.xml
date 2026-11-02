@@ -66,6 +66,7 @@
     <string name="mensajes_detalle_destino">Destino: %1$s</string>
     <string name="mensajes_detalle_id">Id: %1$s</string>
     <string name="mensajes_detalle_clave">Clave: %1$s</string>
+    <string name="mensajes_detalle_ip">Pedido desde: %1$s</string>
     <string name="mensajes_detalle_referencia">Referencia: %1$s</string>
     <string name="mensajes_detalle_partes">Partes: %1$d · entregadas: %2$d</string>
     <string name="mensajes_detalle_intentos">Intentos: %1$d</string>

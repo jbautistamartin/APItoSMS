@@ -112,6 +112,9 @@ public sealed record Mensaje
     /// <summary>Caducidad pedida por el cliente.</summary>
     public DateTimeOffset? CaducaEn { get; init; }
 
+    /// <summary>La IP desde la que se pidió el mensaje.</summary>
+    public string? IpOrigen { get; init; }
+
     /// <summary>Solo en <see cref="EstadoMensaje.EnCola"/>: 1 es el siguiente en salir.</summary>
     public int? PosicionEnCola { get; init; }
 

@@ -25,6 +25,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
   app se reenvía; un permiso retirado para la cola sin gastar intentos.
 - **Estados** `EN_COLA`, `ENVIANDO`, `ENVIADO`, `ENTREGADO`, `NO_ENTREGADO`, `FALLIDO`,
   `CANCELADO` y `CADUCADO`, con informe de entrega cuando el operador lo manda.
+- **La IP de origen** de cada mensaje (`ipOrigen`): se guarda con el mensaje, la devuelve la API,
+  la enseña el detalle de la pestaña Mensajes y la llevan las líneas del Registro de su envío y su
+  entrega.
 - **Idempotencia**: la misma `Idempotency-Key` con el mismo contenido devuelve el mensaje ya
   creado y no manda otro SMS.
 - **Certificado TLS** generado en el teléfono (EC P-256 en `AndroidKeyStore`) o importado de un

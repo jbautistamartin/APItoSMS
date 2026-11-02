@@ -82,6 +82,7 @@ class MensajesFragment : Fragment() {
             add(getString(R.string.mensajes_detalle_destino, m.destino))
             add(getString(R.string.mensajes_detalle_id, m.id))
             m.claveNombre?.let { add(getString(R.string.mensajes_detalle_clave, it)) }
+            m.ipOrigen?.let { add(getString(R.string.mensajes_detalle_ip, it)) }
             m.referencia?.let { add(getString(R.string.mensajes_detalle_referencia, it)) }
             add(getString(R.string.mensajes_detalle_partes, m.partes, m.partesEntregadas))
             add(getString(R.string.mensajes_detalle_intentos, m.intentos))

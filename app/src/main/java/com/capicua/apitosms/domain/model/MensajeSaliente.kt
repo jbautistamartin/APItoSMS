@@ -24,6 +24,8 @@ import java.time.Instant
  * @property huellaPeticion SHA-256 del contenido pedido, para distinguir un reintento (mismo
  *   contenido) de una reutilización de la clave de idempotencia (otro contenido: `409`).
  * @property referencia texto libre del cliente, para cruzarlo con su sistema.
+ * @property ipOrigen la IP desde la que llegó la petición. Va con el mensaje y no solo en el
+ *   Registro, que se purga antes. null en los mensajes anteriores a la v2 del esquema.
  * @property partes cuántos SMS se facturan.
  * @property partesEntregadas cuántas partes tienen ya informe de entrega positivo.
  * @property proximoIntentoEn antes de este instante la cola no lo toca (espera tras un error).
@@ -37,6 +39,7 @@ data class MensajeSaliente(
     val idempotencyKey: String? = null,
     val huellaPeticion: String? = null,
     val referencia: String? = null,
+    val ipOrigen: String? = null,
     val estado: EstadoMensaje = EstadoMensaje.EN_COLA,
     val intentos: Int = 0,
     val ultimoError: String? = null,

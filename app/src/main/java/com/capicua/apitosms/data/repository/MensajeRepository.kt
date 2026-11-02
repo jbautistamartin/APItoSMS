@@ -110,7 +110,8 @@ internal fun MensajeSaliente.aEntidad() = MensajeEntity(
     enviadoEn = enviadoEn?.toEpochMilli(),
     entregadoEn = entregadoEn?.toEpochMilli(),
     caducaEn = caducaEn?.toEpochMilli(),
-    actualizadoEn = actualizadoEn.toEpochMilli()
+    actualizadoEn = actualizadoEn.toEpochMilli(),
+    ipOrigen = ipOrigen
 )
 
 internal fun MensajeEntity.aDominio() = MensajeSaliente(
@@ -122,6 +123,7 @@ internal fun MensajeEntity.aDominio() = MensajeSaliente(
     idempotencyKey = idempotencyKey,
     huellaPeticion = huellaPeticion,
     referencia = referencia,
+    ipOrigen = ipOrigen,
     // Un estado desconocido solo podría venir de una versión futura degradada; se trata como
     // fallido para que la cola no lo toque.
     estado = EstadoMensaje.de(estado) ?: EstadoMensaje.FALLIDO,
