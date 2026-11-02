@@ -1,0 +1,339 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "6a305af4e8f70dda4a7c964825bd1180",
+    "entities": [
+      {
+        "tableName": "mensajes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `destino` TEXT NOT NULL, `texto` TEXT, `clave_id` TEXT, `clave_nombre` TEXT, `idempotency_key` TEXT, `huella_peticion` TEXT, `referencia` TEXT, `estado` TEXT NOT NULL, `intentos` INTEGER NOT NULL, `ultimo_error` TEXT, `partes` INTEGER NOT NULL, `partes_entregadas` INTEGER NOT NULL, `admitido_en` INTEGER NOT NULL, `proximo_intento_en` INTEGER NOT NULL, `enviado_en` INTEGER, `entregado_en` INTEGER, `caduca_en` INTEGER, `actualizado_en` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "destino",
+            "columnName": "destino",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "texto",
+            "columnName": "texto",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "claveId",
+            "columnName": "clave_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "claveNombre",
+            "columnName": "clave_nombre",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "huellaPeticion",
+            "columnName": "huella_peticion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "referencia",
+            "columnName": "referencia",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intentos",
+            "columnName": "intentos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimoError",
+            "columnName": "ultimo_error",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "partes",
+            "columnName": "partes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "partesEntregadas",
+            "columnName": "partes_entregadas",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "admitidoEn",
+            "columnName": "admitido_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proximoIntentoEn",
+            "columnName": "proximo_intento_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "enviadoEn",
+            "columnName": "enviado_en",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "entregadoEn",
+            "columnName": "entregado_en",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "caducaEn",
+            "columnName": "caduca_en",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizado_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mensajes_estado_admitido_en_id",
+            "unique": false,
+            "columnNames": [
+              "estado",
+              "admitido_en",
+              "id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mensajes_estado_admitido_en_id` ON `${TABLE_NAME}` (`estado`, `admitido_en`, `id`)"
+          },
+          {
+            "name": "index_mensajes_clave_id_admitido_en",
+            "unique": false,
+            "columnNames": [
+              "clave_id",
+              "admitido_en"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mensajes_clave_id_admitido_en` ON `${TABLE_NAME}` (`clave_id`, `admitido_en`)"
+          },
+          {
+            "name": "index_mensajes_clave_id_idempotency_key",
+            "unique": true,
+            "columnNames": [
+              "clave_id",
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_mensajes_clave_id_idempotency_key` ON `${TABLE_NAME}` (`clave_id`, `idempotency_key`)"
+          },
+          {
+            "name": "index_mensajes_referencia",
+            "unique": false,
+            "columnNames": [
+              "referencia"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mensajes_referencia` ON `${TABLE_NAME}` (`referencia`)"
+          }
+        ]
+      },
+      {
+        "tableName": "claves",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `prefijo` TEXT NOT NULL, `hash` TEXT NOT NULL, `ambitos` TEXT NOT NULL, `redes_permitidas` TEXT NOT NULL, `cuota_diaria` INTEGER NOT NULL, `peticiones_por_minuto` INTEGER NOT NULL, `creada_en` INTEGER NOT NULL, `ultimo_uso_en` INTEGER, `ultima_ip` TEXT, `revocada_en` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prefijo",
+            "columnName": "prefijo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hash",
+            "columnName": "hash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ambitos",
+            "columnName": "ambitos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "redesPermitidas",
+            "columnName": "redes_permitidas",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cuotaDiaria",
+            "columnName": "cuota_diaria",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peticionesPorMinuto",
+            "columnName": "peticiones_por_minuto",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "creadaEn",
+            "columnName": "creada_en",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimoUsoEn",
+            "columnName": "ultimo_uso_en",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ultimaIp",
+            "columnName": "ultima_ip",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "revocadaEn",
+            "columnName": "revocada_en",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_claves_hash",
+            "unique": true,
+            "columnNames": [
+              "hash"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_claves_hash` ON `${TABLE_NAME}` (`hash`)"
+          }
+        ]
+      },
+      {
+        "tableName": "log_entries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tipo` TEXT NOT NULL, `mensaje_id` TEXT, `destino` TEXT, `clave` TEXT, `ip` TEXT, `detalle` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mensajeId",
+            "columnName": "mensaje_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "destino",
+            "columnName": "destino",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "clave",
+            "columnName": "clave",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ip",
+            "columnName": "ip",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detalle",
+            "columnName": "detalle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_log_entries_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_log_entries_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_log_entries_mensaje_id",
+            "unique": false,
+            "columnNames": [
+              "mensaje_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_log_entries_mensaje_id` ON `${TABLE_NAME}` (`mensaje_id`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6a305af4e8f70dda4a7c964825bd1180')"
+    ]
+  }
+}
