@@ -309,6 +309,13 @@ mientras no esté hecha.
 - El certificado no viaja en la copia. Con uno **generado**, el teléfono nuevo tiene otra huella
   y hay que actualizar los clientes. Con uno **importado**, basta con volver a importar el mismo
   `.p12` y los clientes no cambian: es el principal motivo para usar esa vía.
+- **Cambiado el 1 nov 2026 (decisión N): «Incluir los datos confidenciales»**, la casilla de
+  SMSRelay. Marcada, la copia lleva el **hash** de cada clave y si estaba activa, y el **`.p12`
+  importado con su contraseña**: el teléfono de repuesto se monta importando un fichero, y los
+  sistemas de la empresa no cambian ni la clave ni la huella. Para que el `.p12` pueda viajar, al
+  importarlo se guarda cifrado (`CopiaDelCertificado`: AES-GCM con una clave de `AndroidKeyStore`,
+  en `noBackupFilesDir`). El certificado **generado** sigue sin viajar: su clave no ha salido nunca
+  del almacén. Desmarcada, la copia es la de siempre. Formato 2; el 1 se sigue leyendo.
 - `android:allowBackup="false"`, para que la copia de Google no se lleve la base.
 
 ### Fase 8 — Herramientas C# · `[x]`
@@ -446,7 +453,8 @@ clave privada acaba en **`AndroidKeyStore`**, de donde no se puede extraer:
   id. No se registra el texto en el log, solo en el mensaje.
 - **Retención**: los textos se purgan a los N días (por defecto 30) y queda el metadato.
   `HealthMonitorWorker` ya tiene ese papel.
-- Base de Room fuera de la copia de Google; la exportación propia no lleva secretos (fase 7).
+- Base de Room fuera de la copia de Google; la exportación propia no lleva secretos salvo que se
+  marque «Incluir los datos confidenciales», con aviso en rojo (fase 7, decisión N).
 - Abrir la pestaña Claves pide el bloqueo del dispositivo (`BiometricPrompt` con credencial del
   dispositivo): quien coge el teléfono no puede crear una clave para sí.
 
@@ -511,3 +519,4 @@ Tomadas el 1 nov 2026.
 | **K** | Los cinco masterplans anteriores | **No se copian**: este es el único plan del repositorio | Copiarlos como historia |
 | **L** | Generador de certificados en C# | **No** (1 nov 2026): la empresa tiene su propia CA | `ApiToSms.Certificado`, que llegó a escribirse y se retiró antes del primer commit |
 | **M** | QR en el Panel con URL y huella | **No** (1 nov 2026): los clientes son computadoras, que no escanean; la huella se copia con un botón | QR con zxing, que se llegó a hacer y se quitó |
+| **N** | Datos confidenciales en la copia | **Opcionales**, con la casilla de SMSRelay (1 nov 2026): hashes de las claves y el `.p12` importado, guardado cifrado para poder exportarlo | Copia siempre sin secretos, que era lo de la fase 7 |

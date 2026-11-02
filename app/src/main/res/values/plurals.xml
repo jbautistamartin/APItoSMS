@@ -11,7 +11,17 @@
     </plurals>
 
     <plurals name="settings_copia_importada">
-        <item quantity="one">Ajustes aplicados y %d clave añadida, revocada. Regenérala en Gestionar claves y reparte el secreto nuevo.</item>
-        <item quantity="other">Ajustes aplicados y %d claves añadidas, revocadas. Regenéralas en Gestionar claves y reparte los secretos nuevos.</item>
+        <item quantity="one">Ajustes aplicados y %d clave añadida.</item>
+        <item quantity="other">Ajustes aplicados y %d claves añadidas.</item>
+    </plurals>
+
+    <plurals name="settings_copia_importada_revocadas">
+        <item quantity="one">%d llega revocada: regenérala en Gestionar claves y reparte el secreto nuevo.</item>
+        <item quantity="other">%d llegan revocadas: regenéralas en Gestionar claves y reparte los secretos nuevos.</item>
+    </plurals>
+
+    <plurals name="mensajes_total">
+        <item quantity="one">%d mensaje</item>
+        <item quantity="other">%d mensajes</item>
     </plurals>
 </resources>

@@ -24,6 +24,7 @@
 
     <!-- Panel -->
     <string name="panel_titulo">Panel</string>
+    <string name="panel_resumen">%1$d mensaje(s) hoy · %2$d en cola · %3$d clave(s) activa(s)</string>
     <string name="panel_servidor">Servidor de la API</string>
     <string name="panel_estado_detenido">Apagado. Nadie puede conectarse.</string>
     <string name="panel_estado_sin_red">Encendido, pero sin wifi: escuchará en cuanto vuelva la red local.</string>
@@ -134,17 +135,33 @@
 
     <!-- Ajustes -->
     <string name="settings_titulo">Ajustes</string>
+    <string name="settings_subtitulo">Lo que necesita el servidor para atender a los sistemas de la empresa y los ajustes que afectan a todos los envíos. Los mensajes tienen su propia pestaña, y las claves, su propia pantalla.</string>
     <string name="settings_guardar">Guardar ajustes</string>
     <string name="settings_guardado">Ajustes guardados</string>
-    <string name="settings_sim_ayuda">La SIM con la que salen los SMS.</string>
-    <string name="settings_sim_elegir">Elegir SIM</string>
-    <string name="settings_sim_por_defecto">La que elija el sistema</string>
-    <string name="settings_sim_desconocida">SIM %1$d, que ya no está puesta</string>
-    <string name="settings_sim_sin_permiso">Para ver las SIM, Android pide el permiso de leer el estado del teléfono.</string>
-    <string name="settings_informes">Pedir informe de entrega</string>
-    <string name="settings_informes_ayuda">Con él, un mensaje pasa de ENVIADO a ENTREGADO o NO_ENTREGADO cuando el operador lo confirma. Algunos operadores no los mandan, o los cobran.</string>
+
+    <string name="settings_seccion_servidor">Servidor de la API</string>
+    <string name="settings_servidor">Atender peticiones</string>
+    <string name="settings_servidor_detalle">Apagado, nadie puede conectarse; lo que ya está en la cola sigue saliendo. Se aplica al momento, igual que el interruptor del Panel.</string>
+
+    <string name="settings_seccion_bateria">Fiabilidad en segundo plano</string>
+    <string name="settings_bateria_ok">✓ Sin restricciones de batería</string>
+    <string name="settings_bateria_ok_detalle">El sistema no suspende la aplicación: la cola sale al momento y el servidor sigue escuchando aunque la pantalla esté apagada.</string>
+    <string name="settings_bateria_pendiente">⚠ La optimización de batería está activa</string>
+    <string name="settings_bateria_pendiente_detalle">Con el ahorro de batería activo, Android puede retrasar la cola horas mientras la pantalla está apagada y no deja que el servidor se reinicie solo. Concede la exención.</string>
+    <string name="settings_bateria_activar">Desactivar ahorro de batería</string>
+    <string name="settings_bateria_revisar">Revisar en Ajustes del sistema</string>
+    <string name="settings_autoinicio">Inicio automático</string>
+    <string name="settings_autoinicio_detalle">Xiaomi, Huawei, Oppo y Vivo no dejan arrancar a una aplicación tras reiniciar el teléfono mientras no esté en su lista de inicio automático, que viene vacía. Sin eso, tras un corte de luz la API no vuelve hasta que alguien abra la aplicación. No se puede conceder desde aquí ni comprobar si ya está: este botón abre la pantalla del sistema donde se activa.</string>
+    <string name="settings_autoinicio_abrir">Abrir inicio automático</string>
+    <string name="settings_sin_pantalla">Este teléfono no tiene esa pantalla. Búscala en los ajustes del sistema.</string>
+    <string name="settings_limite">Límite de SMS de Android</string>
+    <string name="settings_limite_detalle">Android limita los SMS que una aplicación puede mandar: 30 cada 30 minutos de fábrica. Pasado el tope pide permiso en pantalla por cada SMS. Solo se cambia por ADB.</string>
+    <string name="settings_limite_estado">Tope actual: %1$s\n\n%2$s\n%3$s</string>
+    <string name="settings_limite_desconocido">el de fábrica (30), o no se puede leer</string>
+
+    <string name="settings_seccion_conexion">Conexión</string>
     <string name="settings_certificado_titulo">Certificado TLS</string>
-    <string name="settings_certificado_ayuda">El teléfono genera el suyo, y su clave privada no sale nunca del almacén seguro. También puedes importar un .p12 hecho con ApiToSms.Certificado o con la CA de tu empresa.</string>
+    <string name="settings_certificado_ayuda">El teléfono genera el suyo, y su clave privada no sale nunca del almacén seguro. También puedes importar un .p12 firmado por la CA de tu empresa: ese sí puede viajar en la copia de seguridad, para que un teléfono de repuesto enseñe la misma huella. Se aplica al momento.</string>
     <string name="settings_certificado_ninguno">Sin certificado: se generará al encender el servidor.</string>
     <string name="settings_certificado_generado">Generado en el teléfono\n%1$s</string>
     <string name="settings_certificado_importado">Importado\n%1$s</string>
@@ -159,25 +176,44 @@
     <string name="settings_certificado_confirmar_mensaje">%1$s\n\nSustituye al actual. Los clientes que fijan la huella actual dejarán de conectar.</string>
     <string name="settings_certificado_importado_ok">Certificado importado. El servidor ya lo usa.</string>
     <string name="settings_claves_ayuda">Crear, revocar y rotar las claves con las que se autentican los sistemas. Pide la credencial del teléfono.</string>
-    <string name="settings_android_titulo">Android</string>
-    <string name="settings_bateria_ok">✓ Exenta de la optimización de batería</string>
-    <string name="settings_bateria_falta">Sin exención de la optimización de batería: con la pantalla apagada la cola puede retrasarse horas.</string>
-    <string name="settings_bateria_abrir">Abrir el ajuste de batería</string>
-    <string name="settings_autoinicio_detalle">Xiaomi, Huawei, Oppo y Vivo no dejan arrancar a una aplicación tras reiniciar el teléfono mientras no esté en su lista de inicio automático, que viene vacía. Sin eso, tras un corte de luz la API no vuelve hasta que alguien abra la aplicación. No se puede comprobar desde aquí.</string>
-    <string name="settings_autoinicio_abrir">Abrir el inicio automático</string>
-    <string name="settings_sin_pantalla">Este teléfono no tiene esa pantalla. Búscala en los ajustes del sistema.</string>
-    <string name="settings_limite_detalle">Android limita los SMS que una aplicación puede mandar: 30 cada 30 minutos de fábrica. Solo se cambia por ADB.</string>
-    <string name="settings_limite_estado">Tope actual: %1$s\n\n%2$s\n%3$s</string>
-    <string name="settings_limite_desconocido">el de fábrica (30), o no se puede leer</string>
+
+    <string name="settings_seccion_sms">SMS</string>
+    <string name="settings_sms_permiso_falta">Falta el permiso de enviar SMS. Sin él la cola se queda parada, sin gastar intentos.</string>
+    <string name="settings_sms_permiso_ok">✓ Permiso de enviar SMS concedido</string>
+    <string name="settings_sms_permiso_pedir">Conceder el permiso</string>
+    <string name="settings_sms_permiso_denegado">Android no ha concedido el permiso. Si no vuelve a preguntar, concédelo a mano en la ficha de la aplicación, en Ajustes del sistema.</string>
+    <string name="settings_sim_ayuda">La SIM con la que salen los SMS. No viaja en la copia de seguridad: es de este teléfono.</string>
+    <string name="settings_sim_elegir">Elegir SIM</string>
+    <string name="settings_sim_por_defecto">La que elija el sistema</string>
+    <string name="settings_sim_desconocida">SIM %1$d, que ya no está puesta</string>
+    <string name="settings_sim_sin_permiso">Para ver las SIM, Android pide el permiso de leer el estado del teléfono.</string>
+    <string name="settings_informes">Pedir informe de entrega</string>
+    <string name="settings_informes_ayuda">Con él, un mensaje pasa de ENVIADO a ENTREGADO o NO_ENTREGADO cuando el operador lo confirma. Algunos operadores no los mandan, o los cobran.</string>
+
+    <string name="settings_seccion_destinos">Destinos</string>
+    <string name="settings_seccion_limites">Límites</string>
+    <string name="settings_seccion_envio">Envío y reintentos</string>
+    <string name="settings_seccion_retencion">Retención</string>
+
     <string name="settings_copia_titulo">Copia de seguridad</string>
-    <string name="settings_copia_ayuda">Los ajustes y la lista de claves, en un JSON, para montar un teléfono de repuesto. No lleva secretos: las claves llegan revocadas y hay que regenerarlas. Tampoco lleva el certificado, los mensajes ni el registro.</string>
+    <string name="settings_copia_ayuda">Guarda en un fichero los ajustes y la lista de claves, para montar un teléfono de repuesto igual que este. Sin los datos confidenciales, las claves llegan revocadas y hay que regenerarlas. No lleva los mensajes ni el registro.</string>
+    <string name="settings_copia_confidenciales">Incluir los datos confidenciales</string>
+    <string name="settings_copia_confidenciales_aviso">El fichero llevará en texto plano el hash de cada clave y, si el certificado se importó de un .p12, el .p12 con su contraseña y la clave privada del servidor. Con él, cualquiera puede montar un teléfono que los sistemas de la empresa acepten como este, y que conteste en su lugar. Guárdalo como guardarías una contraseña: cifrado o en un sitio del que respondas, nunca en una carpeta compartida ni en el correo.</string>
     <string name="settings_copia_exportar">Exportar</string>
     <string name="settings_copia_importar">Importar</string>
-    <string name="settings_copia_importar_aviso">Los ajustes de la copia sustituyen a los actuales, y sus claves se añaden revocadas. Las claves que ya hay no se tocan.</string>
+    <string name="settings_copia_importar_aviso">Los ajustes de la copia sustituyen a los actuales y sus claves se añaden; las que ya hay no se tocan. Si la copia lleva un certificado, sustituye al de este teléfono.</string>
     <string name="settings_copia_elegir">Elegir el fichero</string>
     <string name="settings_copia_exportada">Copia exportada</string>
+    <string name="settings_copia_exportada_confidenciales">Copia exportada con las claves y el certificado · custodia el fichero</string>
+    <string name="settings_copia_exportada_sin_certificado_generado">Copia exportada con las claves · custodia el fichero. El certificado no va: el generado en el teléfono no puede salir de él, y el de repuesto enseñará otra huella.</string>
+    <string name="settings_copia_exportada_sin_certificado_copia">Copia exportada con las claves · custodia el fichero. El certificado no va: se importó antes de que la aplicación guardara su copia. Vuelve a importar el .p12 y exporta otra vez.</string>
     <string name="settings_copia_error">No se pudo: %1$s</string>
     <string name="settings_copia_importada_titulo">Copia importada</string>
+    <string name="settings_copia_importada_activas">Las claves funcionan ya con sus secretos de siempre: los sistemas no tienen que cambiar nada.</string>
+    <string name="settings_copia_importada_repetidas">%1$d clave(s) ya estaban en este teléfono y no se han duplicado.</string>
+    <string name="settings_copia_importada_certificado">Certificado importado: el servidor enseña la misma huella que el teléfono de origen.</string>
+    <string name="settings_copia_importada_certificado_no">El certificado de la copia no se ha importado: %1$s</string>
+    <string name="settings_copia_importada_sin_certificado">La copia no trae certificado: este teléfono usa el suyo, con otra huella. Reparte la huella del Panel, o importa el .p12 de la CA.</string>
 
     <!-- Acerca de -->
     <string name="about_empresa">Capicua</string>

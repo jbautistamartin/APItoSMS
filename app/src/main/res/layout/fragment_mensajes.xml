@@ -6,12 +6,28 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- La misma cabecera que el Registro (y que los Logs de SMSRelay): el título y, a la
+         derecha, cuántos hay con el filtro elegido. -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/mensajes_titulo"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/mensajes_titulo"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
+
+        <TextView
+            android:id="@+id/text_view_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+    </LinearLayout>
 
     <!-- Ver fragment_logs.xml: el host arbitra el gesto horizontal con el ViewPager2. -->
     <com.capicua.apitosms.presentation.common.NestedScrollableHost

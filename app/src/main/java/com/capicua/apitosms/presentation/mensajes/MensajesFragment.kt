@@ -50,6 +50,8 @@ class MensajesFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.lista.collect { lista ->
                     adapter.submitList(lista)
+                    binding.textViewTotal.text =
+                        resources.getQuantityString(R.plurals.mensajes_total, lista.size, lista.size)
                     binding.textVacio.visibility = if (lista.isEmpty()) View.VISIBLE else View.GONE
                 }
             }

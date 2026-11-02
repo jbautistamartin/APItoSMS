@@ -30,7 +30,7 @@ workers son como son se lee en SMSRelay. **Lo que diga este fichero gana sobre e
 ```bash
 ./gradlew assembleDebug
 ./gradlew installDebug                     # com.capicua.apitosms.debug, convive con la release
-./gradlew test                             # 82 tests JVM, nueve clases
+./gradlew test                             # 88 tests JVM, nueve clases
 ./gradlew test --tests "com.capicua.apitosms.domain.api.ApiDeMensajesTest"
 
 # Release: claves en local.properties, igual que las otras cinco
@@ -165,14 +165,26 @@ los estados del YAML no son los del enum. Una ruta nueva va en los dos sitios y 
   `BiometricPrompt` (`BIOMETRIC_STRONG | DEVICE_CREDENTIAL`) con 5 minutos de vigencia en memoria,
   y la pantalla lleva `FLAG_SECURE`. Copiar el secreto lo marca `EXTRA_IS_SENSITIVE`.
 - **`allowBackup="false"`** y `data_extraction_rules.xml` excluye todo: la base no sale en la copia
-  de Google. **La copia propia (`CopiaDeAjustes`) no lleva secretos**: las claves llegan revocadas,
-  con un hash al azar, para regenerarlas. Se acota con los mismos rangos que el formulario de
-  Ajustes (`ValidadorDeAjustes`); si se cambia un rango, se cambia en los dos.
+  de Google. **La copia propia (`CopiaDeAjustes`, formato 2) no lleva secretos salvo que se marque
+  «Incluir los datos confidenciales»** (decisión N), como las credenciales en SMSRelay:
+  - Sin marcar, las claves llegan revocadas, con un hash al azar, para regenerarlas.
+  - Marcada, viajan el hash de cada clave y si estaba activa, y el `.p12` importado con su
+    contraseña: el teléfono de repuesto acepta las mismas claves y enseña la misma huella. Para
+    eso, **al importar un `.p12` se guarda cifrado** (`CopiaDelCertificado`: AES-GCM con una clave
+    de `AndroidKeyStore`, en `noBackupFilesDir`); generar un certificado borra esa copia. El
+    certificado generado no viaja nunca. Una clave cuyo hash ya está no se duplica al importar.
+  - Se acota con los mismos rangos que el formulario de Ajustes (`ValidadorDeAjustes`); si se
+    cambia un rango, se cambia en los dos.
 
 ### Interfaz
 
 Cinco pestañas en un `ViewPager2` (`Pestana.kt` es la fuente de verdad del orden): **Panel,
-Mensajes, Registro, Ajustes, Acerca de**. `nav_graph.xml` solo tiene `homeFragment` y
+Mensajes, Registro, Ajustes, Acerca de**. **Las pantallas siguen el orden y el estilo de las de
+SMSRelay**: título y resumen de una línea en el Panel; título y recuento en Mensajes y Registro;
+y Ajustes con sus mismas secciones y en el mismo orden —el interruptor que manda (aquí el
+servidor; allí la recepción), fiabilidad en segundo plano, el «destino» (conexión, certificado,
+claves y SMS), límites, envío y reintentos, Guardar y la copia de seguridad—, con los títulos de
+sección fuera de las tarjetas. Si se cambia una, se mira la otra. `nav_graph.xml` solo tiene `homeFragment` y
 `clavesFragment`. El Panel enseña avisos de lo que falta (permiso, batería, límite de SMS de
 Android, IPs bloqueadas, cola bloqueada, ninguna clave). **No hay QR** (decisión M).
 

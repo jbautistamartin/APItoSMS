@@ -113,6 +113,13 @@ class PanelFragment : Fragment() {
                     }
                 }
                 launch {
+                    combine(viewModel.resumen, viewModel.clavesActivas) { r, claves -> r to claves }
+                        .collect { (resumen, claves) ->
+                            val (hoy, enCola) = resumen
+                            binding.textResumen.text = getString(R.string.panel_resumen, hoy.values.sum(), enCola, claves)
+                        }
+                }
+                launch {
                     combine(
                         viewModel.comprobaciones, viewModel.clavesActivas, viewModel.bloqueoDeCola
                     ) { c, claves, bloqueo -> Triple(c, claves, bloqueo) }.collect { (c, claves, bloqueo) ->

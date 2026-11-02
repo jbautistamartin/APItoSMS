@@ -13,28 +13,37 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.time.Instant
+import java.util.Base64
 import java.util.UUID
 
 /**
  * La copia de seguridad de la configuración: un JSON para montar un teléfono de repuesto igual
  * que el que se estropeó.
  *
- * Lleva los ajustes y **la lista de claves sin secretos**. Los secretos no están en ningún sitio
- * —solo su hash, y el hash tampoco viaja—, así que las claves llegan al teléfono nuevo
- * **revocadas**: con su nombre, sus permisos, sus redes y sus límites, listas para regenerar una
- * a una y repartir el secreto nuevo a cada sistema. Es lo que se quiere: una copia que circula
- * por correo no debe poder mandar SMS.
+ * Lleva los ajustes y la lista de claves, y **los datos confidenciales solo si quien exporta lo
+ * pide** (la casilla de Ajustes, como «Incluir las credenciales» en SMSRelay):
  *
- * No viajan: el interruptor del servidor, la pausa de la cola ni el certificado. El certificado
- * generado vive en `AndroidKeyStore` y no se puede exportar; el importado, quien lo tiene es
- * quien lo generó.
+ * - **Sin ellos**, las claves llegan al teléfono nuevo **revocadas**, con un hash al azar: con su
+ *   nombre, sus permisos, sus redes y sus límites, listas para regenerar una a una y repartir el
+ *   secreto nuevo a cada sistema. Una copia así puede circular sin poder mandar ningún SMS.
+ * - **Con ellos**, viajan el **hash** de cada clave y si estaba activa, y el **`.p12` del
+ *   certificado importado** con su contraseña. El teléfono nuevo acepta las mismas claves y
+ *   enseña la misma huella, así que los sistemas de la empresa no notan el cambio. El secreto de
+ *   las claves sigue sin viajar —no está en ningún sitio—, pero el `.p12` lleva la clave privada
+ *   del servidor: el fichero hay que guardarlo como una contraseña.
  *
- * El texto de los mensajes y el registro no forman parte de la copia.
+ * Un certificado **generado** en el teléfono no viaja nunca: su clave nació en `AndroidKeyStore`
+ * y de ahí no sale. El teléfono nuevo generará el suyo, con otra huella.
+ *
+ * No viajan nunca: el interruptor del servidor, la pausa de la cola, la SIM (es de este
+ * teléfono), el texto de los mensajes ni el registro.
  */
 object CopiaDeAjustes {
 
     const val FORMATO = "apitosms-ajustes"
-    const val VERSION = 1
+
+    /** 2: los datos confidenciales, opcionales. Una copia 1 se lee como una 2 sin ellos. */
+    const val VERSION = 2
 
     @Serializable
     data class Copia(
@@ -42,7 +51,9 @@ object CopiaDeAjustes {
         val version: Int = VERSION,
         @SerialName("exportadaEn") val exportadaEn: String,
         val ajustes: Ajustes,
-        val claves: List<Clave> = emptyList()
+        val claves: List<Clave> = emptyList(),
+        /** Solo en una copia con datos confidenciales, y si el certificado se importó. */
+        val certificado: Certificado? = null
     )
 
     @Serializable
@@ -71,11 +82,37 @@ object CopiaDeAjustes {
         val ambitos: List<String>,
         val redesPermitidas: List<String> = emptyList(),
         val cuotaDiaria: Int = 0,
-        val peticionesPorMinuto: Int = ClaveApi.PETICIONES_POR_MINUTO_POR_DEFECTO
+        val peticionesPorMinuto: Int = ClaveApi.PETICIONES_POR_MINUTO_POR_DEFECTO,
+        /** Los tres siguientes solo van en una copia con datos confidenciales. */
+        val hash: String? = null,
+        val prefijo: String? = null,
+        val activa: Boolean? = null
     )
 
+    /** El `.p12` tal como se importó, en Base64, y su contraseña. */
+    @Serializable
+    data class Certificado(val p12: String, val contrasena: String)
+
+    /**
+     * Lo confidencial que se exporta. Pasar uno, aunque sea sin certificado, es lo que pone los
+     * hashes de las claves en la copia.
+     *
+     * @property p12 el `.p12` importado, si se conserva; null si no hay ninguno que pueda viajar.
+     */
+    class Confidencial(val p12: ByteArray? = null, val contrasena: CharArray? = null)
+
+    /** Un certificado sacado de la copia, aún sin validar: eso lo hace `CertificadoDelServidor.leer`. */
+    class CertificadoLeido(val p12: ByteArray, val contrasena: CharArray)
+
     sealed interface Lectura {
-        data class Valida(val config: (AppConfig) -> AppConfig, val claves: List<ClaveApi>) : Lectura
+        data class Valida(
+            val config: (AppConfig) -> AppConfig,
+            val claves: List<ClaveApi>,
+            val certificado: CertificadoLeido? = null,
+            /** La copia traía datos confidenciales: el hash de alguna clave, o el certificado. */
+            val conConfidenciales: Boolean = false
+        ) : Lectura
+
         data class Invalida(val motivo: String) : Lectura
     }
 
@@ -85,8 +122,17 @@ object CopiaDeAjustes {
         encodeDefaults = true
     }
 
-    fun exportar(config: AppConfig, claves: List<ClaveApi>, ahora: Instant = Instant.now()): String =
-        json.encodeToString(Copia.serializer(), Copia(
+    /** SHA-256 en hexadecimal y en minúsculas, que es como lo escribe `SecretoDeClave.hash`. */
+    private val HASH = Regex("^[0-9a-f]{64}$")
+
+    fun exportar(
+        config: AppConfig,
+        claves: List<ClaveApi>,
+        ahora: Instant = Instant.now(),
+        confidencial: Confidencial? = null
+    ): String {
+        val conConfidenciales = confidencial != null
+        return json.encodeToString(Copia.serializer(), Copia(
             exportadaEn = ahora.toString(),
             ajustes = Ajustes(
                 puerto = config.puerto,
@@ -107,14 +153,33 @@ object CopiaDeAjustes {
                 retencionRegistroDias = config.retencionRegistroDias
             ),
             claves = claves.map { c ->
-                Clave(c.nombre, c.ambitos.map { it.name }.sorted(), c.redesPermitidas, c.cuotaDiaria, c.peticionesPorMinuto)
+                Clave(
+                    nombre = c.nombre,
+                    ambitos = c.ambitos.map { it.name }.sorted(),
+                    redesPermitidas = c.redesPermitidas,
+                    cuotaDiaria = c.cuotaDiaria,
+                    peticionesPorMinuto = c.peticionesPorMinuto,
+                    hash = c.hash.takeIf { conConfidenciales },
+                    prefijo = c.prefijo.takeIf { conConfidenciales },
+                    activa = c.activa.takeIf { conConfidenciales }
+                )
+            },
+            certificado = confidencial?.p12?.let { p12 ->
+                Certificado(
+                    p12 = Base64.getEncoder().encodeToString(p12),
+                    contrasena = String(confidencial.contrasena ?: CharArray(0))
+                )
             }
         ))
+    }
 
     /**
      * Lee una copia. Devuelve una función que aplica los ajustes sobre la configuración actual
-     * —para conservar lo que no viaja— y las claves ya construidas, revocadas y con un hash que
-     * no corresponde a ningún secreto conocido.
+     * —para conservar lo que no viaja—, las claves ya construidas y el certificado, si venía.
+     *
+     * Una clave sin hash, o con uno que no tiene forma de SHA-256, llega revocada y con un hash
+     * que no corresponde a ningún secreto conocido. Con un hash válido llega como estaba: activa
+     * o revocada.
      */
     fun leer(texto: String, ahora: Instant = Instant.now()): Lectura {
         val copia = try {
@@ -130,22 +195,30 @@ object CopiaDeAjustes {
         val a = copia.ajustes
         if (a.puerto !in 1024..65535) return Lectura.Invalida("Puerto fuera de rango en la copia: ${a.puerto}.")
 
+        val certificado = copia.certificado?.let { c ->
+            val bytes = runCatching { Base64.getDecoder().decode(c.p12) }.getOrNull()
+                ?: return Lectura.Invalida("El certificado de la copia no está bien codificado.")
+            CertificadoLeido(bytes, c.contrasena.toCharArray())
+        }
+
         val claves = copia.claves.mapNotNull { c ->
             val ambitos = c.ambitos.mapNotNull(Ambito::de).toSet()
             if (c.nombre.isBlank() || ambitos.isEmpty()) return@mapNotNull null
-            // Un secreto al azar que nadie conoce: la clave no autentica hasta que se regenere.
-            val inutil = SecretoDeClave.generar()
+            val hash = c.hash?.takeIf { HASH.matches(it) }
             ClaveApi(
                 id = UUID.randomUUID().toString(),
                 nombre = c.nombre.trim().take(60),
-                prefijo = SecretoDeClave.PREFIJO + "····",
-                hash = SecretoDeClave.hash(inutil),
+                prefijo = c.prefijo?.takeIf { hash != null && it.startsWith(SecretoDeClave.PREFIJO) }
+                    ?.take(SecretoDeClave.CARACTERES_VISIBLES)
+                    ?: (SecretoDeClave.PREFIJO + "····"),
+                // Sin hash, el de un secreto al azar que nadie conoce: no autentica hasta regenerarla.
+                hash = hash ?: SecretoDeClave.hash(SecretoDeClave.generar()),
                 ambitos = ambitos,
                 redesPermitidas = c.redesPermitidas,
                 cuotaDiaria = c.cuotaDiaria.coerceAtLeast(0),
                 peticionesPorMinuto = c.peticionesPorMinuto.coerceIn(1, 6000),
                 creadaEn = ahora,
-                revocadaEn = ahora
+                revocadaEn = if (hash != null && c.activa == true) null else ahora
             )
         }
 
@@ -172,7 +245,9 @@ object CopiaDeAjustes {
                     retencionRegistroDias = a.retencionRegistroDias.coerceIn(1, 3650)
                 )
             },
-            claves = claves
+            claves = claves,
+            certificado = certificado,
+            conConfidenciales = certificado != null || copia.claves.any { it.hash != null }
         )
     }
 }

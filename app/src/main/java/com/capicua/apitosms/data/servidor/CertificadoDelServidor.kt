@@ -39,10 +39,10 @@ import javax.security.auth.x500.X500Principal
  * - **Generado** ([generar]): el par de claves nace dentro de `AndroidKeyStore`, con un
  *   certificado autofirmado. La clave privada no ha existido nunca fuera del teléfono. Es lo que
  *   pasa la primera vez que se enciende el servidor.
- * - **Importado** ([importar]): un `.p12` creado con `ApiToSms.Certificado` o firmado por la CA de
- *   la empresa. Lo que se gana es poder cambiar de teléfono sin tocar los clientes, importando el
- *   mismo fichero. Lo que se paga es que la clave existió en ese fichero: hay que borrarlo o
- *   guardarlo bien.
+ * - **Importado** ([importar]): un `.p12` firmado por la CA de la empresa. Lo que se gana es poder
+ *   cambiar de teléfono sin tocar los clientes, importando el mismo fichero —o la copia de ajustes
+ *   con datos confidenciales, que lo lleva: ver [CopiaDelCertificado]—. Lo que se paga es que la
+ *   clave existió en ese fichero: hay que borrarlo o guardarlo bien.
  *
  * El servidor no pide la clave privada en ningún momento: [sslContext] le da a TLS un gestor de
  * claves que firma con la de `AndroidKeyStore`, y Conscrypt sabe usar una clave opaca del almacén.

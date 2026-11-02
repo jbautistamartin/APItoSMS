@@ -208,7 +208,7 @@ reanuda la cola. Solo escucha en `127.0.0.1`: no tiene autenticación propia y m
 
 ```bash
 ./gradlew assembleDebug            # APK debug (com.capicua.apitosms.debug, convive con la release)
-./gradlew test                     # 82 tests JVM
+./gradlew test                     # 88 tests JVM
 ./gradlew assembleRelease          # → app/build/outputs/apk/release/apitosms-<versión>.apk
 
 cd dotnet

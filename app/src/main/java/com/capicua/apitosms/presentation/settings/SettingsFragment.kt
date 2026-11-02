@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -55,19 +56,31 @@ class SettingsFragment : Fragment() {
 
     private val crearCopia = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri == null) return@registerForActivityResult
-        viewModel.exportarCopia(uri) { error ->
-            avisar(if (error == null) getString(R.string.settings_copia_exportada) else getString(R.string.settings_copia_error, error))
+        val conConfidenciales = binding.switchIncluirConfidenciales.isChecked
+        viewModel.exportarCopia(uri, conConfidenciales) { resultado ->
+            resultado.onSuccess { certificado ->
+                // Que el fichero lleva datos confidenciales se dice también al terminar, no solo en
+                // el aviso de antes: entre marcar la casilla y guardar se pasa por el selector del
+                // sistema, que es donde se decide la carpeta.
+                avisar(getString(when (certificado) {
+                    SettingsViewModel.CertificadoExportado.NO_PEDIDO -> R.string.settings_copia_exportada
+                    SettingsViewModel.CertificadoExportado.INCLUIDO -> R.string.settings_copia_exportada_confidenciales
+                    SettingsViewModel.CertificadoExportado.GENERADO -> R.string.settings_copia_exportada_sin_certificado_generado
+                    SettingsViewModel.CertificadoExportado.SIN_COPIA -> R.string.settings_copia_exportada_sin_certificado_copia
+                }))
+            }.onFailure { avisar(getString(R.string.settings_copia_error, it.message)) }
         }
     }
 
     private val abrirCopia = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
         viewModel.importarCopia(uri) { resultado ->
-            resultado.onSuccess { n ->
+            resultado.onSuccess { r ->
                 rellenar()
+                // Un diálogo y no un Snackbar: dice lo siguiente que hay que hacer.
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.settings_copia_importada_titulo)
-                    .setMessage(resources.getQuantityString(R.plurals.settings_copia_importada, n, n))
+                    .setMessage(textoDeImportacion(r))
                     .setPositiveButton(R.string.permiso_entendido, null)
                     .show()
             }.onFailure { avisar(getString(R.string.settings_copia_error, it.message)) }
@@ -76,6 +89,11 @@ class SettingsFragment : Fragment() {
 
     private val pedirEstadoTelefono = registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
         if (concedido) elegirSim() else avisar(getString(R.string.settings_sim_sin_permiso))
+    }
+
+    private val pedirEnviarSms = registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        if (_binding != null) pintarPermisoSms()
+        if (!concedido) avisar(getString(R.string.settings_sms_permiso_denegado))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -87,6 +105,12 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonGuardar.setOnClickListener { guardar() }
+        // Al pulsar, no al cambiar: si escuchara los cambios, pintar el valor guardado lo
+        // volvería a aplicar.
+        binding.switchServidor.setOnClickListener {
+            viewModel.cambiarServidor(binding.switchServidor.isChecked)
+        }
+        binding.buttonSmsPermiso.setOnClickListener { pedirEnviarSms.launch(Manifest.permission.SEND_SMS) }
         binding.buttonSim.setOnClickListener { elegirSim() }
         binding.buttonRegenerarCertificado.setOnClickListener { confirmarRegenerar() }
         binding.buttonImportarCertificado.setOnClickListener {
@@ -107,6 +131,11 @@ class SettingsFragment : Fragment() {
             crearCopia.launch("apitosms-ajustes-${LocalDate.now()}.json")
         }
         binding.buttonImportarCopia.setOnClickListener { confirmarImportarCopia() }
+        // El aviso solo con la casilla encendida: un texto en rojo permanente sobre algo que no
+        // está pasando se deja de leer, y entonces tampoco se lee cuando sí pasa.
+        binding.switchIncluirConfidenciales.setOnCheckedChangeListener { _, marcado ->
+            binding.textConfidencialesAviso.isVisible = marcado
+        }
 
         // Solo se rellena una vez por vista: si se rellenara en cada emisión, guardar desde otra
         // pantalla —la pausa del Panel, por ejemplo— borraría lo que se está escribiendo aquí.
@@ -120,12 +149,19 @@ class SettingsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.datosCertificado.collect { datos ->
-                    binding.textCertificado.text = when {
-                        datos == null -> getString(R.string.settings_certificado_ninguno)
-                        datos.origen == "IMPORTADO" -> getString(R.string.settings_certificado_importado, datos.resumen)
-                        else -> getString(R.string.settings_certificado_generado, datos.resumen)
+                launch {
+                    viewModel.datosCertificado.collect { datos ->
+                        binding.textCertificado.text = when {
+                            datos == null -> getString(R.string.settings_certificado_ninguno)
+                            datos.origen == "IMPORTADO" -> getString(R.string.settings_certificado_importado, datos.resumen)
+                            else -> getString(R.string.settings_certificado_generado, datos.resumen)
+                        }
                     }
+                }
+                // El interruptor del servidor sí sigue al valor guardado: también se cambia desde
+                // el Panel, y no es un campo del formulario.
+                launch {
+                    viewModel.config.filterNotNull().collect { binding.switchServidor.isChecked = it.servidorActivo }
                 }
             }
         }
@@ -135,9 +171,9 @@ class SettingsFragment : Fragment() {
         super.onResume()
         viewModel.refrescarCertificado()
         val ctx = requireContext()
-        binding.textBateria.setText(
-            if (OptimizacionBateria.estaExenta(ctx)) R.string.settings_bateria_ok else R.string.settings_bateria_falta
-        )
+        // La exención y el permiso cambian fuera de la aplicación: se repintan al volver.
+        pintarBateria()
+        pintarPermisoSms()
         val maximo = LimiteDeSmsDeAndroid.maximo(ctx)
         binding.textLimite.text = getString(
             R.string.settings_limite_estado,
@@ -216,6 +252,33 @@ class SettingsFragment : Fragment() {
             vista.textErrores.visibility = if (errores.isEmpty()) View.GONE else View.VISIBLE
             if (errores.isEmpty()) avisar(getString(R.string.settings_guardado))
         }
+    }
+
+    // ── Batería y permiso ─────────────────────────────────────────────────────
+
+    /**
+     * Con la exención concedida el botón se queda, como acción secundaria: algunos fabricantes
+     * la revocan por su cuenta tras una actualización.
+     */
+    private fun pintarBateria() {
+        val exenta = OptimizacionBateria.estaExenta(requireContext())
+        binding.textBateriaEstado.setText(if (exenta) R.string.settings_bateria_ok else R.string.settings_bateria_pendiente)
+        binding.textBateriaEstado.setTextColor(
+            resources.getColor(if (exenta) R.color.status_delivered else R.color.status_pending, null)
+        )
+        binding.textBateriaDetalle.setText(
+            if (exenta) R.string.settings_bateria_ok_detalle else R.string.settings_bateria_pendiente_detalle
+        )
+        binding.buttonBateria.setText(if (exenta) R.string.settings_bateria_revisar else R.string.settings_bateria_activar)
+    }
+
+    private fun pintarPermisoSms() {
+        val puede = viewModel.puedeEnviarSms
+        binding.textSmsPermiso.setText(if (puede) R.string.settings_sms_permiso_ok else R.string.settings_sms_permiso_falta)
+        binding.textSmsPermiso.setTextColor(
+            resources.getColor(if (puede) R.color.status_delivered else R.color.status_failed, null)
+        )
+        binding.buttonSmsPermiso.isVisible = !puede
     }
 
     // ── SIM ───────────────────────────────────────────────────────────────────
@@ -321,6 +384,27 @@ class SettingsFragment : Fragment() {
                 abrirCopia.launch(arrayOf("application/json", "text/plain", "*/*"))
             }
             .show()
+    }
+
+    private fun textoDeImportacion(r: SettingsViewModel.ResultadoImportacion): String {
+        val nuevas = r.activas + r.revocadas
+        val parrafos = buildList {
+            add(buildString {
+                append(resources.getQuantityString(R.plurals.settings_copia_importada, nuevas, nuevas))
+                if (r.revocadas > 0) {
+                    append(' ')
+                    append(resources.getQuantityString(R.plurals.settings_copia_importada_revocadas, r.revocadas, r.revocadas))
+                }
+            })
+            if (r.activas > 0) add(getString(R.string.settings_copia_importada_activas))
+            if (r.repetidas > 0) add(getString(R.string.settings_copia_importada_repetidas, r.repetidas))
+            when {
+                r.certificadoImportado -> add(getString(R.string.settings_copia_importada_certificado))
+                r.traiaCertificado -> add(getString(R.string.settings_copia_importada_certificado_no, r.motivoCertificado))
+                r.conConfidenciales -> add(getString(R.string.settings_copia_importada_sin_certificado))
+            }
+        }
+        return parrafos.joinToString("\n\n")
     }
 
     private fun avisar(texto: String) {
