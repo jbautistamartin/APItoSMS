@@ -41,7 +41,9 @@ object ValidadorDeAjustes {
         val retencionTextos: String,
         val retencionMensajes: String,
         val retencionRegistro: String,
-        val subscriptionId: Int
+        val subscriptionId: Int,
+        val escucharPorUsb: Boolean = false,
+        val escucharPorAdb: Boolean = false
     )
 
     sealed interface Resultado {
@@ -106,6 +108,8 @@ object ValidadorDeAjustes {
             prefijosPermitidos = c.prefijosPermitidos.trim(),
             prefijosBloqueados = c.prefijosBloqueados.trim(),
             redesPermitidas = c.redesPermitidas.trim(),
+            escucharPorUsb = c.escucharPorUsb,
+            escucharPorAdb = c.escucharPorAdb,
             informesDeEntrega = c.informesDeEntrega,
             retencionTextosDias = retTextos,
             retencionMensajesDias = retMensajes,

@@ -20,6 +20,7 @@ import com.capicua.apitosms.databinding.FragmentPanelBinding
 import com.capicua.apitosms.domain.model.EstadoMensaje
 import com.capicua.apitosms.presentation.claves.PuertaDeCredencial
 import com.capicua.apitosms.presentation.common.copiar
+import com.capicua.apitosms.domain.red.TipoEnlace
 import com.capicua.apitosms.service.EstadoServidor
 import com.capicua.apitosms.util.LimiteDeSmsDeAndroid
 import dagger.hilt.android.AndroidEntryPoint
@@ -121,23 +122,33 @@ class PanelFragment : Fragment() {
                 }
                 launch {
                     combine(
-                        viewModel.comprobaciones, viewModel.clavesActivas, viewModel.bloqueoDeCola
-                    ) { c, claves, bloqueo -> Triple(c, claves, bloqueo) }.collect { (c, claves, bloqueo) ->
-                        binding.textClaves.text = if (claves == 0) getString(R.string.panel_sin_claves)
-                        else resources.getQuantityString(R.plurals.panel_claves_activas, claves, claves)
-                        pintarAvisos(c, claves, bloqueo)
+                        viewModel.comprobaciones, viewModel.clavesActivas, viewModel.bloqueoDeCola, viewModel.estado
+                    ) { c, claves, bloqueo, estado -> Avisos(c, claves, bloqueo, estado) }.collect { a ->
+                        binding.textClaves.text = if (a.claves == 0) getString(R.string.panel_sin_claves)
+                        else resources.getQuantityString(R.plurals.panel_claves_activas, a.claves, a.claves)
+                        pintarAvisos(a.comprobaciones, a.claves, a.bloqueo, a.estado)
                     }
                 }
             }
         }
     }
 
+    private data class Avisos(
+        val comprobaciones: PanelViewModel.Comprobaciones,
+        val claves: Int,
+        val bloqueo: String?,
+        val estado: EstadoServidor.Estado
+    )
+
     private fun pintarServidor(estado: EstadoServidor.Estado) {
         val (texto, url) = when (estado) {
             EstadoServidor.Estado.Detenido -> getString(R.string.panel_estado_detenido) to null
             EstadoServidor.Estado.EsperandoRed -> getString(R.string.panel_estado_sin_red) to null
             is EstadoServidor.Estado.Error -> getString(R.string.panel_estado_error, estado.motivo) to null
-            is EstadoServidor.Estado.Escuchando -> getString(R.string.panel_estado_escuchando) to estado.url
+            // Con una sola dirección, como siempre; con varias, cada una con por dónde llega.
+            is EstadoServidor.Estado.Escuchando -> getString(R.string.panel_estado_escuchando) to
+                if (estado.puntos.size == 1) estado.url
+                else estado.puntos.joinToString("\n") { "${it.url}  · ${it.tipo.etiqueta}" }
         }
         binding.textEstadoServidor.text = texto
         binding.textUrl.text = url.orEmpty()
@@ -159,8 +170,15 @@ class PanelFragment : Fragment() {
         binding.textHuellaClave.text = "sha256//${huellas.clavePublica}"
     }
 
-    private fun pintarAvisos(c: PanelViewModel.Comprobaciones, claves: Int, bloqueo: String?) {
+    private fun pintarAvisos(
+        c: PanelViewModel.Comprobaciones,
+        claves: Int,
+        bloqueo: String?,
+        estado: EstadoServidor.Estado
+    ) {
+        val porUsb = (estado as? EstadoServidor.Estado.Escuchando)?.puntos.orEmpty().any { it.tipo == TipoEnlace.USB }
         val avisos = buildList {
+            if (porUsb && c.datosMoviles) add(getString(R.string.panel_aviso_usb_datos))
             if (c.sinPermisoSms) add(getString(R.string.panel_aviso_permiso_sms))
             if (bloqueo != null) add(getString(R.string.panel_aviso_bloqueo, bloqueo))
             if (claves == 0) add(getString(R.string.panel_aviso_sin_claves))

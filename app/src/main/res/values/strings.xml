@@ -27,9 +27,10 @@
     <string name="panel_resumen">%1$d mensaje(s) hoy · %2$d en cola · %3$d clave(s) activa(s)</string>
     <string name="panel_servidor">Servidor de la API</string>
     <string name="panel_estado_detenido">Apagado. Nadie puede conectarse.</string>
-    <string name="panel_estado_sin_red">Encendido, pero sin wifi: escuchará en cuanto vuelva la red local.</string>
+    <string name="panel_estado_sin_red">Encendido, pero sin wifi ni cable: escuchará en cuanto haya red local.</string>
     <string name="panel_estado_error">No se pudo arrancar: %1$s</string>
-    <string name="panel_estado_escuchando">Escuchando en la red local, por HTTPS:</string>
+    <string name="panel_estado_escuchando">Escuchando por HTTPS en:</string>
+    <string name="panel_aviso_usb_datos">El anclaje USB está activo y el teléfono tiene datos móviles: la computadora conectada puede salir a internet por la SIM, saltándose la red de la empresa. Apaga los datos móviles (los SMS siguen funcionando) o, en la computadora, marca esa conexión para que no sea la ruta por defecto.</string>
     <string name="panel_copiar_url">Copiar la dirección</string>
     <string name="panel_url_etiqueta">Dirección de la API</string>
     <string name="panel_certificado_titulo">Certificado del servidor</string>
@@ -188,6 +189,10 @@
     <string name="settings_sim_por_defecto">La que elija el sistema</string>
     <string name="settings_sim_desconocida">SIM %1$d, que ya no está puesta</string>
     <string name="settings_sim_sin_permiso">Para ver las SIM, Android pide el permiso de leer el estado del teléfono.</string>
+    <string name="settings_usb">Escuchar también por anclaje USB</string>
+    <string name="settings_usb_ayuda">Para una computadora conectada por cable, sin wifi. Activa además «Anclaje de red USB» en los ajustes de Android cada vez que conectes el cable: Android lo apaga al desenchufar. Si el teléfono tiene datos móviles, la computadora también saldrá a internet por ellos.</string>
+    <string name="settings_adb">Escuchar también para adb</string>
+    <string name="settings_adb_ayuda">Escucha en 127.0.0.1, para «adb forward tcp:PUERTO tcp:PUERTO» desde la computadora. Pide la depuración USB activada siempre, que da control total del teléfono a quien lo conecte: para pruebas, o para una computadora de total confianza.</string>
     <string name="settings_informes">Pedir informe de entrega</string>
     <string name="settings_informes_ayuda">Con él, un mensaje pasa de ENVIADO a ENTREGADO o NO_ENTREGADO cuando el operador lo confirma. Algunos operadores no los mandan, o los cobran.</string>
 

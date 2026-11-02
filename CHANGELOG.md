@@ -14,6 +14,25 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
 
 ## [No publicado]
 
+### Añadido
+
+- **Conexión por cable, sin wifi**, en dos opciones de Ajustes → Conexión, apagadas por defecto:
+  - **Escuchar también por anclaje USB**: con el anclaje de red USB de Android encendido, la
+    computadora conectada recibe IP del teléfono y llega a la API por el cable. Solo se admite la
+    subred del cable. El Panel avisa si, además, el teléfono tiene datos móviles, porque la
+    computadora saldría a internet por la SIM.
+  - **Escuchar también para adb**: el servidor escucha en `127.0.0.1`, para
+    `adb forward tcp:8443 tcp:8443` desde la computadora.
+- El Panel y la notificación enseñan todas las direcciones en las que se escucha, cada una con
+  por dónde llega.
+
+### Cambiado
+
+- El servidor puede escuchar en varias direcciones a la vez (wifi o Ethernet, anclaje USB y adb),
+  cada una con su propio socket. Sin wifi y sin cable sigue sin escuchar en nada.
+- La copia de seguridad lleva los dos interruptores nuevos. Una copia de la 1.0.0 los deja
+  apagados.
+
 ---
 
 ## [1.0.0] — 2026-11-02

@@ -49,6 +49,8 @@ class ConfigDataStore @Inject constructor(
             prefijosPermitidos = p[Keys.PREFIJOS_PERMITIDOS] ?: d.prefijosPermitidos,
             prefijosBloqueados = p[Keys.PREFIJOS_BLOQUEADOS] ?: d.prefijosBloqueados,
             redesPermitidas = p[Keys.REDES_PERMITIDAS] ?: d.redesPermitidas,
+            escucharPorUsb = p[Keys.ESCUCHAR_POR_USB] ?: d.escucharPorUsb,
+            escucharPorAdb = p[Keys.ESCUCHAR_POR_ADB] ?: d.escucharPorAdb,
             informesDeEntrega = p[Keys.INFORMES_ENTREGA] ?: d.informesDeEntrega,
             retencionTextosDias = p[Keys.RETENCION_TEXTOS] ?: d.retencionTextosDias,
             retencionMensajesDias = p[Keys.RETENCION_MENSAJES] ?: d.retencionMensajesDias,
@@ -76,6 +78,8 @@ class ConfigDataStore @Inject constructor(
             p[Keys.PREFIJOS_PERMITIDOS] = c.prefijosPermitidos
             p[Keys.PREFIJOS_BLOQUEADOS] = c.prefijosBloqueados
             p[Keys.REDES_PERMITIDAS] = c.redesPermitidas
+            p[Keys.ESCUCHAR_POR_USB] = c.escucharPorUsb
+            p[Keys.ESCUCHAR_POR_ADB] = c.escucharPorAdb
             p[Keys.INFORMES_ENTREGA] = c.informesDeEntrega
             p[Keys.RETENCION_TEXTOS] = c.retencionTextosDias
             p[Keys.RETENCION_MENSAJES] = c.retencionMensajesDias
@@ -111,6 +115,8 @@ class ConfigDataStore @Inject constructor(
         val PREFIJOS_PERMITIDOS = stringPreferencesKey("prefijos_permitidos")
         val PREFIJOS_BLOQUEADOS = stringPreferencesKey("prefijos_bloqueados")
         val REDES_PERMITIDAS = stringPreferencesKey("redes_permitidas")
+        val ESCUCHAR_POR_USB = booleanPreferencesKey("escuchar_por_usb")
+        val ESCUCHAR_POR_ADB = booleanPreferencesKey("escuchar_por_adb")
         val INFORMES_ENTREGA = booleanPreferencesKey("informes_entrega")
         val RETENCION_TEXTOS = intPreferencesKey("retencion_textos_dias")
         val RETENCION_MENSAJES = intPreferencesKey("retencion_mensajes_dias")

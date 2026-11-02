@@ -17,6 +17,7 @@ import com.capicua.apitosms.data.repository.ClaveRepository
 import com.capicua.apitosms.data.repository.LogRepository
 import com.capicua.apitosms.data.repository.MensajeRepository
 import com.capicua.apitosms.data.servidor.CertificadoDelServidor
+import com.capicua.apitosms.data.servidor.RedLocal
 import com.capicua.apitosms.domain.model.EstadoMensaje
 import com.capicua.apitosms.domain.model.LogEntry
 import com.capicua.apitosms.domain.model.LogTipo
@@ -60,7 +61,8 @@ class PanelViewModel @Inject constructor(
     private val registro: LogRepository,
     private val certificado: CertificadoDelServidor,
     private val cola: ColaDeEnvios,
-    private val bloqueo: BloqueoPorFallos
+    private val bloqueo: BloqueoPorFallos,
+    private val redLocal: RedLocal
 ) : AndroidViewModel(application) {
 
     data class Huellas(val certificado: String, val clavePublica: String, val origen: String?)
@@ -70,7 +72,9 @@ class PanelViewModel @Inject constructor(
         val sinPermisoSms: Boolean = false,
         val sinExencionBateria: Boolean = false,
         val limiteDeAndroid: Boolean = false,
-        val ipsBloqueadas: Map<String, Instant> = emptyMap()
+        val ipsBloqueadas: Map<String, Instant> = emptyMap(),
+        /** Con el anclaje USB, la computadora conectada saldría a internet por estos datos. */
+        val datosMoviles: Boolean = false
     )
 
     val estado: StateFlow<EstadoServidor.Estado> = EstadoServidor.estado
@@ -105,7 +109,8 @@ class PanelViewModel @Inject constructor(
                 PackageManager.PERMISSION_GRANTED,
             sinExencionBateria = !OptimizacionBateria.estaExenta(app),
             limiteDeAndroid = !LimiteDeSmsDeAndroid.estaAmpliado(app),
-            ipsBloqueadas = bloqueo.bloqueadasAhora()
+            ipsBloqueadas = bloqueo.bloqueadasAhora(),
+            datosMoviles = redLocal.hayDatosMoviles()
         )
         viewModelScope.launch {
             val origen = configDataStore.config.first().origenCertificado
