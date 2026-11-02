@@ -21,12 +21,13 @@ Computadora de la red local                     Teléfono con APItoSMS
 > llevan a otro sitio; esta recibe una petición y manda el SMS. Las dos pueden estar instaladas en
 > el mismo teléfono.
 
-**La 1.0.0 está publicada** y se descarga desde la
+**La 1.1.0 está publicada** y se descarga desde la
 [última release](https://github.com/jbautistamartin/APItoSMS/releases/latest): el APK para el
 teléfono, el paquete NuGet de la biblioteca C# y la web de pruebas para Windows y Linux. Se probó
 en un teléfono real (Xiaomi con HyperOS y SIM Telcel), con pruebas de resistencia incluidas: un
-lote de 50, media hora en Doze, reinicios con la cola llena y la wifi que se va y vuelve. Lo que
-cambia en cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
+lote de 50, media hora en Doze, reinicios con la cola llena y la wifi que se va y vuelve. La 1.1.0
+añade la conexión por cable, sin wifi: [anclaje de red USB y `adb forward`](#sin-wifi-por-cable).
+Lo que cambia en cada versión está en [`CHANGELOG.md`](CHANGELOG.md).
 
 No está en Google Play: `SEND_SMS` pertenece a un grupo de permisos restringido cuya publicación
 exige una declaración aprobada.

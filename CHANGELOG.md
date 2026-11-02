@@ -14,6 +14,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
 
 ## [No publicado]
 
+---
+
+## [1.1.0] — 2026-11-02
+
 ### Añadido
 
 - **Conexión por cable, sin wifi**, en dos opciones de Ajustes → Conexión, apagadas por defecto:
@@ -32,6 +36,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y l
   cada una con su propio socket. Sin wifi y sin cable sigue sin escuchar en nada.
 - La copia de seguridad lleva los dos interruptores nuevos. Una copia de la 1.0.0 los deja
   apagados.
+- La biblioteca C# y la web de pruebas no cambian: se publican como 1.1.0 para que todo el release
+  lleve la misma versión.
 
 ---
 
