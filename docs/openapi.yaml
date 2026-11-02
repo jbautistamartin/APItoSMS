@@ -1,0 +1,341 @@
+# APItoSMS — contrato de la API
+# Copyright © 2026 Capicua · José Luis Bautista Martín
+# Licencia: GNU Lesser General Public License v2.1
+#
+# Las rutas de este fichero y las de ApiDeMensajes.RUTAS tienen que ser las mismas: lo comprueba
+# ContratoOpenApiTest. Los nombres de campo son los de domain/api/Json.kt.
+openapi: 3.1.0
+info:
+  title: APItoSMS
+  version: 1.0.0
+  summary: Envío de SMS en serie a través de un teléfono Android de la red local.
+  description: |
+    El teléfono admite el mensaje, lo guarda y contesta `202` enseguida. Después lo envía **de uno
+    en uno**, con la pausa configurada entre mensajes. El resultado se consulta por sondeo
+    (`GET /api/v1/mensajes/{id}`).
+
+    **`ENVIADO` puede ser el estado final.** Hay operadores que no mandan informes de entrega
+    (Telcel por VoWiFi, por ejemplo), y con ellos un mensaje nunca pasa a `ENTREGADO`.
+
+    El servidor es HTTPS con un certificado propio del teléfono, generado en él o importado de la
+    CA de la empresa. Con uno autofirmado, los clientes **fijan su huella**: el Panel de la app
+    enseña la del certificado y la de la clave pública.
+
+    Los cuerpos van con `Content-Length`; `Transfer-Encoding: chunked` se rechaza con `501`.
+  license:
+    name: LGPL-2.1-only
+    identifier: LGPL-2.1-only
+servers:
+  - url: https://{ip}:{puerto}
+    variables:
+      ip:
+        default: 192.168.1.50
+        description: La IP wifi del teléfono, la que enseña el Panel. Conviene reservarla en el DHCP.
+      puerto:
+        default: "8443"
+security:
+  - clave: []
+
+paths:
+  /api/v1/salud:
+    get:
+      operationId: salud
+      summary: Comprueba que el teléfono contesta
+      security: []
+      responses:
+        "200":
+          description: El servidor escucha.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Salud" }
+
+  /api/v1/mensajes:
+    post:
+      operationId: enviar
+      summary: Deja un mensaje en la cola
+      description: Ámbito `ENVIAR`. Vuelve en cuanto el mensaje está guardado, no cuando sale.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NuevoMensaje" }
+            example: { destino: "+523311298770", texto: "Su pedido 7 ha salido", referencia: "pedido-7" }
+      responses:
+        "202":
+          description: Admitido. Con `Idempotent-Replayed` es el mensaje que creó una petición anterior con la misma clave.
+          headers:
+            Location: { schema: { type: string }, description: "/api/v1/mensajes/{id}" }
+            Idempotent-Replayed: { schema: { type: string, enum: ["true"] } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "409": { $ref: "#/components/responses/Problema" }
+        "415": { $ref: "#/components/responses/Problema" }
+        "422": { $ref: "#/components/responses/Problema" }
+        "429": { $ref: "#/components/responses/ProblemaConEspera" }
+    get:
+      operationId: listar
+      summary: Lista mensajes, del más reciente al más antiguo
+      description: Ámbito `CONSULTAR`. Sin `ADMIN`, solo los de la propia clave.
+      parameters:
+        - { name: estado, in: query, schema: { $ref: "#/components/schemas/Estado" } }
+        - { name: referencia, in: query, schema: { type: string } }
+        - { name: desde, in: query, description: Admitidos desde este instante (ISO 8601 con zona)., schema: { type: string, format: date-time } }
+        - { name: limite, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: cursor, in: query, description: El `siguiente` de la página anterior., schema: { type: string } }
+      responses:
+        "200":
+          description: Una página.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pagina" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "422": { $ref: "#/components/responses/Problema" }
+        "429": { $ref: "#/components/responses/ProblemaConEspera" }
+
+  /api/v1/mensajes/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: consultar
+      summary: Estado de un mensaje
+      description: Ámbito `CONSULTAR`. Un mensaje de otra clave da `404` salvo con `ADMIN`.
+      responses:
+        "200":
+          description: El mensaje.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+    delete:
+      operationId: cancelar
+      summary: Cancela un mensaje que sigue en la cola
+      description: Ámbito `ENVIAR`. Solo lo que está `EN_COLA`; si no, `409 no-cancelable`.
+      responses:
+        "200":
+          description: Cancelado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+        "409": { $ref: "#/components/responses/Problema" }
+
+  /api/v1/lotes:
+    post:
+      operationId: enviarLote
+      summary: Deja varios mensajes en la cola, en orden
+      description: |
+        Ámbito `ENVIAR`. **Todo o nada**: si un mensaje no es válido no se admite ninguno, y cada
+        error trae su `indice`. La `Idempotency-Key` vale para el lote entero.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [mensajes]
+              properties:
+                mensajes:
+                  type: array
+                  minItems: 1
+                  description: Hasta el máximo por lote de los ajustes (100 por defecto).
+                  items: { $ref: "#/components/schemas/NuevoMensaje" }
+      responses:
+        "202":
+          description: Admitidos, en el mismo orden.
+          headers:
+            Idempotent-Replayed: { schema: { type: string, enum: ["true"] } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [mensajes]
+                properties:
+                  mensajes:
+                    type: array
+                    items: { $ref: "#/components/schemas/Mensaje" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "409": { $ref: "#/components/responses/Problema" }
+        "415": { $ref: "#/components/responses/Problema" }
+        "422": { $ref: "#/components/responses/Problema" }
+        "429": { $ref: "#/components/responses/ProblemaConEspera" }
+
+  /api/v1/cola:
+    get:
+      operationId: estadoCola
+      summary: Estado de la cola y de las cuotas
+      description: Ámbito `CONSULTAR`.
+      responses:
+        "200":
+          description: La cola.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cola" }
+        "401": { $ref: "#/components/responses/Problema" }
+
+  /api/v1/cola/pausa:
+    post:
+      operationId: pausar
+      summary: Pausa la cola
+      description: Ámbito `ADMIN`. Sin cuerpo. El teléfono sigue admitiendo mensajes, pero no envía.
+      responses:
+        "200":
+          description: La cola, ya pausada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cola" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+
+  /api/v1/cola/reanudar:
+    post:
+      operationId: reanudar
+      summary: Reanuda la cola
+      description: Ámbito `ADMIN`. Sin cuerpo.
+      responses:
+        "200":
+          description: La cola, en marcha.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cola" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+
+components:
+  securitySchemes:
+    clave:
+      type: http
+      scheme: bearer
+      description: |
+        `Authorization: Bearer ats_…`. La clave se crea en el teléfono (Panel → Claves) y se
+        enseña una sola vez: el teléfono solo guarda su SHA-256.
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: |
+        Repetir la petición con la misma clave y el mismo contenido devuelve el mensaje ya creado,
+        sin mandar otro SMS. Con otro contenido, `409 conflicto-idempotencia`.
+      schema: { type: string, pattern: "^[A-Za-z0-9_\\-:.]{1,100}$" }
+
+  responses:
+    Problema:
+      description: Error. Ver `docs/errores.md`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problema" }
+    ProblemaConEspera:
+      description: "`ritmo-excedido` o `cuota-agotada`."
+      headers:
+        Retry-After: { schema: { type: integer }, description: Segundos. }
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problema" }
+
+  schemas:
+    Estado:
+      type: string
+      enum: [EN_COLA, ENVIANDO, ENVIADO, ENTREGADO, NO_ENTREGADO, FALLIDO, CANCELADO, CADUCADO]
+      description: |
+        `EN_COLA → ENVIANDO → ENVIADO → ENTREGADO | NO_ENTREGADO`; `ENVIANDO → EN_COLA` (error
+        transitorio) o `FALLIDO`; `EN_COLA → CANCELADO | CADUCADO`.
+
+    NuevoMensaje:
+      type: object
+      additionalProperties: false
+      required: [destino, texto]
+      properties:
+        destino: { type: string, description: E.164, o nacional con el prefijo de país de los ajustes. }
+        texto: { type: string, maxLength: 1600 }
+        referencia: { type: string, maxLength: 100 }
+        caducaEn: { type: string, format: date-time, description: Si para entonces no ha salido, queda CADUCADO. }
+
+    Mensaje:
+      type: object
+      required: [id, destino, estado, intentos, partes, admitidoEn]
+      properties:
+        id: { type: string }
+        destino: { type: string, description: Normalizado a E.164. }
+        texto: { type: string, description: Ausente si la retención lo ha purgado. }
+        referencia: { type: string }
+        estado: { $ref: "#/components/schemas/Estado" }
+        intentos: { type: integer }
+        ultimoError: { type: string }
+        partes: { type: integer, description: SMS en que se parte el texto. }
+        admitidoEn: { type: string, format: date-time }
+        proximoIntentoEn: { type: string, format: date-time }
+        enviadoEn: { type: string, format: date-time }
+        entregadoEn: { type: string, format: date-time }
+        caducaEn: { type: string, format: date-time }
+        posicionEnCola: { type: integer, description: Solo en EN_COLA; 1 es el siguiente. }
+
+    Pagina:
+      type: object
+      required: [mensajes]
+      properties:
+        mensajes:
+          type: array
+          items: { $ref: "#/components/schemas/Mensaje" }
+        siguiente: { type: string, description: Cursor de la página siguiente; ausente si no hay más. }
+
+    Cuota:
+      type: object
+      required: [limite, usadas]
+      properties:
+        limite: { type: integer, description: Partes SMS al día; 0 sin límite. }
+        usadas: { type: integer }
+
+    Cola:
+      type: object
+      required: [pausada, enCola, enviando, pausaEntreMensajesSegundos, hoy, cuotaGlobal]
+      properties:
+        pausada: { type: boolean }
+        enCola: { type: integer }
+        enviando: { type: integer }
+        pausaEntreMensajesSegundos: { type: integer }
+        hoy:
+          type: object
+          description: Mensajes de hoy por estado; de la clave, o de todas con ADMIN.
+          additionalProperties: { type: integer }
+        cuotaGlobal: { $ref: "#/components/schemas/Cuota" }
+        cuotaClave: { $ref: "#/components/schemas/Cuota" }
+
+    Salud:
+      type: object
+      required: [estado, version]
+      properties:
+        estado: { type: string, enum: [ok] }
+        version: { type: string }
+
+    Problema:
+      type: object
+      required: [type, title, status, codigo]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        codigo: { type: string, description: Estable; es lo que debe mirar un programa. }
+        errores:
+          type: array
+          items:
+            type: object
+            required: [campo, motivo]
+            properties:
+              indice: { type: integer, description: Posición en el lote. }
+              campo: { type: string }
+              motivo: { type: string }

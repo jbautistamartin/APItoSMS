@@ -157,7 +157,7 @@ object CopiaDeAjustes {
                     maxIntentos = a.maxIntentos.coerceIn(1, 50),
                     intervaloReintentoSegundos = a.intervaloReintentoSegundos.coerceIn(5, 3600),
                     timeoutEnvioSegundos = a.timeoutEnvioSegundos.coerceIn(10, 600),
-                    cuotaDiariaGlobal = a.cuotaDiariaGlobal.coerceAtLeast(0),
+                    cuotaDiariaGlobal = a.cuotaDiariaGlobal.coerceIn(0, 1_000_000),
                     maxPartesPorMensaje = a.maxPartesPorMensaje.coerceIn(1, 10),
                     maxMensajesPorLote = a.maxMensajesPorLote.coerceIn(1, 1000),
                     prefijoPais = a.prefijoPais,
@@ -165,9 +165,11 @@ object CopiaDeAjustes {
                     prefijosBloqueados = a.prefijosBloqueados,
                     redesPermitidas = a.redesPermitidas,
                     informesDeEntrega = a.informesDeEntrega,
-                    retencionTextosDias = a.retencionTextosDias.coerceAtLeast(1),
-                    retencionMensajesDias = a.retencionMensajesDias.coerceAtLeast(1),
-                    retencionRegistroDias = a.retencionRegistroDias.coerceAtLeast(1)
+                    retencionTextosDias = a.retencionTextosDias.coerceIn(1, 3650),
+                    // Como en Ajustes: el mensaje no se borra antes que su texto.
+                    retencionMensajesDias = a.retencionMensajesDias.coerceIn(1, 3650)
+                        .coerceAtLeast(a.retencionTextosDias.coerceIn(1, 3650)),
+                    retencionRegistroDias = a.retencionRegistroDias.coerceIn(1, 3650)
                 )
             },
             claves = claves
