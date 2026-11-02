@@ -30,7 +30,7 @@ workers son como son se lee en SMSRelay. **Lo que diga este fichero gana sobre e
 ```bash
 ./gradlew assembleDebug
 ./gradlew installDebug                     # com.capicua.apitosms.debug, convive con la release
-./gradlew test                             # 88 tests JVM, nueve clases
+./gradlew test                             # 90 tests JVM, diez clases
 ./gradlew test --tests "com.capicua.apitosms.domain.api.ApiDeMensajesTest"
 
 # Release: claves en local.properties, igual que las otras cinco

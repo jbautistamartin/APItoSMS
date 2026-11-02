@@ -49,7 +49,15 @@ import javax.net.ssl.SSLSocket
  * esperan en una cola corta y, si la cola se llena, se cierran: el teléfono no es un servidor web
  * y no debe intentar parecerlo.
  *
+ * ## Si el socket muere solo
+ * Al caer la wifi, Android destruye los sockets atados a esa IP y `accept()` lanza una
+ * `SocketException`, igual que cuando lo cierra [detener]. Si no se distinguiera, el
+ * `ServerSocket` quedaría abierto pero muerto: [escuchando] diría que sí y, al volver la misma IP,
+ * nadie lo volvería a atar (se vio en el teléfono, fase 10, prueba 10). Por eso, si el bucle
+ * termina sin [detener], se cierra el socket y se llama a [alCaer].
+ *
  * @param sslContext null solo en los tests que prueban el protocolo sin TLS.
+ * @param alCaer se llama, desde el hilo aceptador, si el socket deja de aceptar sin [detener].
  */
 class ServidorHttps(
     private val direccion: InetAddress,
@@ -57,7 +65,8 @@ class ServidorHttps(
     private val sslContext: SSLContext?,
     private val manejador: ManejadorHttp,
     private val filtro: (InetAddress) -> Boolean = { true },
-    private val alFallar: (Throwable) -> Unit = {}
+    private val alFallar: (Throwable) -> Unit = {},
+    private val alCaer: () -> Unit = {}
 ) {
     @Volatile private var socket: ServerSocket? = null
     @Volatile private var hilos: ExecutorService? = null
@@ -97,8 +106,10 @@ class ServidorHttps(
 
     @Synchronized
     fun detener() {
-        runCatching { socket?.close() }
+        // Primero se suelta y luego se cierra: así el aceptador sabe que fue a propósito.
+        val actual = socket
         socket = null
+        runCatching { actual?.close() }
         hilos?.shutdownNow()
         hilos = null
         aceptador = null
@@ -109,7 +120,13 @@ class ServidorHttps(
             val cliente = try {
                 servidor.accept()
             } catch (e: SocketException) {
-                break // cerrado por detener()
+                // Cerrado por detener(), o destruido por el sistema al perder la IP.
+                if (socket === servidor) {
+                    runCatching { servidor.close() }
+                    alFallar(e)
+                    alCaer()
+                }
+                break
             } catch (e: IOException) {
                 alFallar(e)
                 continue

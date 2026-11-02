@@ -43,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -174,7 +175,8 @@ class ApiServerService : Service() {
                 sslContext = certificado.sslContext().also { anotarCertificadoSiNuevo() },
                 manejador = api,
                 filtro = ::admitirConexion,
-                alFallar = { Timber.e(it, "ServidorHttps") }
+                alFallar = { Timber.e(it, "ServidorHttps") },
+                alCaer = { scope.launch { reatarTrasCaida() } }
             )
             nuevo.iniciar()
             servidor = nuevo
@@ -189,6 +191,18 @@ class ApiServerService : Service() {
             EstadoServidor.cambiar(EstadoServidor.Estado.Error(motivo))
             anotar("Error del servidor: $motivo")
         }
+    }
+
+    /**
+     * El socket murió sin que se parase: casi siempre, la wifi se fue y se llevó la IP. Se espera
+     * un poco a que [RedLocal] lo refleje y se ata a lo que haya; si no hay red local, queda
+     * esperándola, y el aviso de [RedLocal.observar] lo atará cuando vuelva.
+     */
+    private suspend fun reatarTrasCaida() {
+        anotar("El servidor dejó de escuchar: se vuelve a atar a la red local")
+        delay(ESPERA_TRAS_CAIDA_MS)
+        val interfaz = redLocal.actual()
+        atarA(interfaz?.direccion, interfaz?.subred)
     }
 
     private suspend fun reiniciar(motivo: String) {
@@ -320,6 +334,7 @@ class ApiServerService : Service() {
     }
 
     companion object {
+        private const val ESPERA_TRAS_CAIDA_MS = 2_000L
         private const val ACCION_REINICIAR = "${BuildConfig.APPLICATION_ID}.REINICIAR_SERVIDOR"
 
         fun iniciar(context: Context) {

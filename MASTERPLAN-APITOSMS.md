@@ -368,7 +368,7 @@ Pruebas en el teléfono (Xiaomi con HyperOS, Android 16, SIM Telcel), el 1 nov 2
 | 8 | 10 fallos de autenticación | IP bloqueada | ✅ Corte a nivel TCP; el botón del Panel la desbloquea |
 | 9 | Huella equivocada en el cliente | El cliente se niega a conectar | ✅ `curl --pinnedpubkey` y la biblioteca C#, con las dos formas de huella |
 | 9b | Importar el `.p12` de la CA de la empresa | El servidor lo sirve y la huella del Panel coincide con la del certificado | ⏳ Pendiente: falta un `.p12` de esa CA |
-| 10 | Desactivar la wifi | El servidor deja de escuchar y no se ata a datos móviles | ⏳ Pendiente |
+| 10 | Desactivar la wifi | El servidor deja de escuchar y no se ata a datos móviles | ✅ 2 nov, con la release: sin wifi no escucha en nada (tampoco en la IP de datos), y al volver se reata en ~5 s. **La primera vez no volvió**: Android destruye el socket al quitar la IP y `escuchando` seguía en `true`; arreglado en `ServidorHttps` (`alCaer`) |
 | 11 | Destino inexistente | `FALLIDO` con el error del operador, y la cola sigue | ⚠️ Fallo genérico del operador, visto por accidente (punto 2); **no se repite con números inventados** |
 
 Y otras que no estaban en la tabla: pausa y reanudación por la API (tras arreglar el `411`),
