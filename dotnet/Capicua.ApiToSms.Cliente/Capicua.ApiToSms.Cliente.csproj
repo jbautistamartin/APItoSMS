@@ -2,9 +2,20 @@
   <PropertyGroup>
     <RootNamespace>Capicua.ApiToSms.Cliente</RootNamespace>
     <Description>Biblioteca cliente de APItoSMS: envía SMS a través de un teléfono Android de la red local, con el certificado fijado por su huella.</Description>
-    <!-- El XML de documentación viaja con la DLL en el release (decisión I). -->
+    <!-- El XML de documentación viaja dentro del paquete NuGet (decisión I). -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+  <!-- El paquete se adjunta al release de GitHub; no se publica en nuget.org (decisión I). -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>Capicua.ApiToSms.Cliente</PackageId>
+    <PackageProjectUrl>https://github.com/jbautistamartin/APItoSMS</PackageProjectUrl>
+    <PackageTags>sms;android;apitosms;capicua</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
   </ItemGroup>

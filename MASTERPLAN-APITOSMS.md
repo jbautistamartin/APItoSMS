@@ -334,6 +334,10 @@ contra el teléfono.
 - **Distribución** (decisión I): `Capicua.ApiToSms.Cliente.dll` se adjunta al release de GitHub, junto
   al APK, con su XML de documentación; y la web de pruebas, **autocontenida** para `win-x64` y
   `linux-x64` (un zip cada una), para probar el teléfono sin instalar .NET. Los tests no van.
+  **Corregido el 2 nov 2026:** la DLL y su XML sueltos pasan a ser un paquete NuGet,
+  `Capicua.ApiToSms.Cliente.<versión>.nupkg`, adjunto al release y **no publicado en nuget.org**.
+  Trae el XML dentro y declara su dependencia de `Microsoft.Extensions.Http`, que suelta había que
+  añadir a mano. El release 1.0.0 se rehízo con él.
 - **Espacio de nombres `Capicua.`** (2 nov 2026): todo proyecto .NET de la empresa empieza por
   `Capicua.`; se renombraron carpetas, `.csproj`, solución y *namespaces* de `ApiToSms.*` a
   `Capicua.ApiToSms.*`. Las clases (`ClienteApiToSms`, `AddApiToSms`) no cambiaron.
@@ -524,7 +528,7 @@ Tomadas el 1 nov 2026.
 | **F** | Simulador del teléfono en C# | **No**: la biblioteca se prueba con tests unitarios y la web contra el teléfono | Simulador que imita la API |
 | **G** | Repositorio en GitHub | **Al acabar la fase 9** (1 nov 2026; se pensó para la 1.0.0 y el usuario lo adelantó), público, con `develop` por defecto hasta la release | Al cerrar la fase 1, o al publicar |
 | **H** | SIM de salida | **Un ajuste global**, como en SMSRelay | Campo `sim` por petición |
-| **I** | Cómo llega la biblioteca C# a la empresa | **DLL adjunta al release de GitHub**, junto al APK, con la web de pruebas autocontenida (`win-x64`, `linux-x64`) | NuGet público, o copiar el proyecto |
+| **I** | Cómo llega la biblioteca C# a la empresa | **Paquete NuGet adjunto al release de GitHub** (al principio, la DLL suelta), sin publicar en nuget.org, junto al APK, con la web de pruebas autocontenida (`win-x64`, `linux-x64`) | NuGet público, o copiar el proyecto |
 | **J** | Origen del certificado TLS | **Los dos**: generado por el teléfono por defecto, o importado (`.p12`) | Solo uno de ellos |
 | **K** | Los cinco masterplans anteriores | **No se copian**: este es el único plan del repositorio | Copiarlos como historia |
 | **L** | Generador de certificados en C# | **No** (1 nov 2026): la empresa tiene su propia CA | `ApiToSms.Certificado`, que llegó a escribirse y se retiró antes del primer commit |
