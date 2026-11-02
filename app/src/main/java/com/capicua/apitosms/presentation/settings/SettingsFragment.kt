@@ -219,6 +219,8 @@ class SettingsFragment : Fragment() {
             b.editRetMensajes.setText(c.retencionMensajesDias.toString())
             b.editRetRegistro.setText(c.retencionRegistroDias.toString())
             b.switchInformes.isChecked = c.informesDeEntrega
+            b.switchUsb.isChecked = c.escucharPorUsb
+            b.switchAdb.isChecked = c.escucharPorAdb
             simElegida = c.subscriptionId
             pintarSim()
         }
@@ -244,7 +246,9 @@ class SettingsFragment : Fragment() {
             retencionTextos = b.editRetTextos.valor(),
             retencionMensajes = b.editRetMensajes.valor(),
             retencionRegistro = b.editRetRegistro.valor(),
-            subscriptionId = simElegida
+            subscriptionId = simElegida,
+            escucharPorUsb = b.switchUsb.isChecked,
+            escucharPorAdb = b.switchAdb.isChecked
         )
         viewModel.guardar(campos) { errores ->
             val vista = _binding ?: return@guardar

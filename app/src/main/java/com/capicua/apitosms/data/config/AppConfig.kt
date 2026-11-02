@@ -89,6 +89,20 @@ data class AppConfig(
      */
     val redesPermitidas: String = "",
 
+    /**
+     * Escuchar también en el **anclaje de red USB**, para una computadora conectada por cable sin
+     * wifi. Por el cable entra solo la computadora conectada, así que ahí no aplica
+     * [redesPermitidas]: se acepta la subred del cable. Ver `domain/red/Enlaces`.
+     */
+    val escucharPorUsb: Boolean = false,
+
+    /**
+     * Escuchar también en `127.0.0.1`, para `adb forward`. Pide tener la depuración USB activada
+     * siempre, y todas las peticiones llegan como `127.0.0.1`: es para pruebas, o para una
+     * computadora de total confianza.
+     */
+    val escucharPorAdb: Boolean = false,
+
     /** Pedir informe de entrega al operador. Sin él, un mensaje se queda en `ENVIADO`. */
     val informesDeEntrega: Boolean = true,
 

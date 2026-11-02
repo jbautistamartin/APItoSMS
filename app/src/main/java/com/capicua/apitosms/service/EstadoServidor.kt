@@ -5,6 +5,7 @@
 
 package com.capicua.apitosms.service
 
+import com.capicua.apitosms.domain.red.TipoEnlace
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,14 +21,26 @@ object EstadoServidor {
     sealed interface Estado {
         data object Detenido : Estado
 
-        /** Encendido, pero sin wifi: escuchará en cuanto vuelva. */
+        /** Encendido, pero sin wifi ni cable: escuchará en cuanto haya dónde. */
         data object EsperandoRed : Estado
 
-        data class Escuchando(val ip: String, val puerto: Int) : Estado {
-            val url: String get() = "https://$ip:$puerto"
+        /**
+         * Escuchando en uno o varios sitios: la wifi o el Ethernet y, si están encendidos, el
+         * anclaje USB y `127.0.0.1` para adb. El primero es el principal: el que enseñan la
+         * notificación y el botón de copiar del Panel.
+         */
+        data class Escuchando(val puntos: List<Punto>) : Estado {
+            init { require(puntos.isNotEmpty()) { "Escuchando sin ningún punto" } }
+            val url: String get() = puntos.first().url
         }
 
+        /** Encendido, pero no se pudo escuchar en ningún sitio. */
         data class Error(val motivo: String) : Estado
+    }
+
+    /** Una dirección en la que se escucha, con por dónde llega. */
+    data class Punto(val tipo: TipoEnlace, val ip: String, val puerto: Int) {
+        val url: String get() = "https://$ip:$puerto"
     }
 
     private val _estado = MutableStateFlow<Estado>(Estado.Detenido)

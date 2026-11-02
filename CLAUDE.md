@@ -8,7 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Qué es APItoSMS
 
-Un teléfono Android con SIM publica una **API HTTPS en la wifi** de la oficina; los sistemas de la
+Un teléfono Android con SIM publica una **API HTTPS en la wifi** de la oficina (o, sin wifi, por el
+cable USB de una computadora: ver «El servidor»); los sistemas de la
 empresa le entregan mensajes y él los manda **en serie**, uno tras otro, desde su SIM. El resultado
 se consulta por sondeo (`GET /api/v1/mensajes/{id}`).
 
@@ -30,7 +31,7 @@ workers son como son se lee en SMSRelay. **Lo que diga este fichero gana sobre e
 ```bash
 ./gradlew assembleDebug
 ./gradlew installDebug                     # com.capicua.apitosms.debug, convive con la release
-./gradlew test                             # 91 tests JVM, diez clases
+./gradlew test                             # 106 tests JVM, once clases
 ./gradlew test --tests "com.capicua.apitosms.domain.api.ApiDeMensajesTest"
 
 # Release: claves en local.properties, igual que las otras cinco
@@ -95,10 +96,20 @@ Computadora ── HTTPS + Bearer ats_… ──► ServidorHttps (data/servidor
   (RFC 9112, 6.3). Las dos cosas se aprendieron en el teléfono: un `411` para un `POST` sin cuerpo
   dejó **sin pausar** la cola en la primera prueba, y `JsonContent` de .NET manda *chunked*.
 - **El filtro de IP va al aceptar la conexión**, antes del saludo TLS: IP bloqueada por fuerza
-  bruta, o fuera de la lista global de redes (vacía = la subred de la wifi). Un rechazo cierra
-  el socket sin contestar.
-- **Se ata a la IP wifi** (`RedLocal`), nunca a `0.0.0.0`: con IPv6 los datos móviles pueden tener
-  IP pública. Si cambia la red, se reata.
+  bruta, o lo que diga `Enlaces.admitir` según por dónde entró: por la wifi, la lista global de
+  redes (vacía = la subred de la wifi); por el anclaje USB, solo la subred del cable; por adb,
+  solo `127.0.0.1`. Un rechazo cierra el socket sin contestar.
+- **Un `ServidorHttps` por enlace** (`domain/red/Enlaces`, Kotlin puro), nunca en `0.0.0.0`: con
+  IPv6 los datos móviles pueden tener IP pública. Los enlaces son la IP wifi o Ethernet
+  (`RedLocal.actual`, que se reata si cambia) y, con sus interruptores de Ajustes, apagados por
+  defecto, el **anclaje de red USB** y **`127.0.0.1` para `adb forward`**. `Enlaces.planificar`
+  decide qué parar y qué arrancar.
+- **El anclaje USB no lo ve `ConnectivityManager`**: para Android es una red que el teléfono
+  comparte, no una a la que está conectado. `RedLocal.anclajeUsb` lo busca entre las interfaces
+  del sistema por el nombre (`rndis*`, `ncm*`, `usb*`, `ecm*`), y como Android no avisa al
+  encenderlo, el servicio vuelve a mirar cada 3 s mientras la opción está encendida.
+- **`Red` compara por valor** (dirección y longitud): sin eso, cada consulta de la red daría un
+  `Enlace` distinto y el servidor se reataría cada pocos segundos.
 - **`ApiServerService`** es un ForegroundService `specialUse` (no `dataSync`, que Android 15 corta
   a las 6 h) con `WifiLock` de alto rendimiento y `WakeLock` parcial.
 - **El certificado** (`CertificadoDelServidor`) vive siempre en `AndroidKeyStore`: generado allí
@@ -218,7 +229,7 @@ Las de la familia: miembros en español, sufijos de framework en inglés (`ColaW
 `ApiServerService`), KDoc y comentarios en español. **Todo `.kt` lleva la cabecera LGPL-2.1 de
 cuatro líneas** con `APItoSMS para Android` en la primera; todo `.cs`, la misma con
 `APItoSMS — <proyecto>`. La licencia de `dotnet/` está en `Directory.Build.props`
-(`LGPL-2.1-only`), igual que el `test-server` de SMSRelay.
+(`LGPL-2.1-only`), igual que el `dotnet/` de SMSRelay.
 
 - **El icono es magenta/frambuesa, tono 40** (`#A4005F`; el degradado del fondo, `#C8287A` →
   `#64003A`), con la flecha que **entra** al bocadillo. **El fondo del icono y `md_theme_primary` se

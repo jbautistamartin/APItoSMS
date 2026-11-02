@@ -4,7 +4,8 @@
 
     <!--
         SMS: solo enviar. APItoSMS no recibe SMS —no hay RECEIVE_SMS ni READ_SMS—: la entrada es
-        la API. READ_PHONE_STATE solo sirve para enumerar las SIM en un teléfono con dos.
+        la API. READ_PHONE_STATE sirve para enumerar las SIM en un teléfono con dos y para saber
+        si los datos móviles están activados (el aviso del anclaje USB en el Panel).
     -->
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />

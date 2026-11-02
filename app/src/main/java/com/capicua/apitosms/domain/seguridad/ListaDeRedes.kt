@@ -31,6 +31,16 @@ class Red private constructor(private val base: ByteArray, private val longitud:
 
     override fun toString(): String = texto
 
+    /**
+     * Igual si la dirección escrita y la longitud son las mismas. Hace falta para comparar enlaces
+     * (`domain/red/Enlace`): el servidor vuelve a preguntar por la red cada pocos segundos, y sin
+     * esto cada respuesta parecería una red nueva y lo reataría sin motivo.
+     */
+    override fun equals(other: Any?): Boolean =
+        other is Red && longitud == other.longitud && base.contentEquals(other.base)
+
+    override fun hashCode(): Int = 31 * base.contentHashCode() + longitud
+
     companion object {
         /**
          * Lee una red, o null si [texto] no lo es. Solo acepta direcciones literales: nunca

@@ -53,6 +53,24 @@ class CopiaDeAjustesTest {
     }
 
     @Test
+    fun `las conexiones por cable viajan, y una copia anterior las deja apagadas`() {
+        val conCable = config.copy(escucharPorUsb = true, escucharPorAdb = true)
+        val ida = CopiaDeAjustes.leer(CopiaDeAjustes.exportar(conCable, emptyList(), ahora), ahora)
+            as CopiaDeAjustes.Lectura.Valida
+        val destino = ida.config(AppConfig())
+        assertTrue(destino.escucharPorUsb)
+        assertTrue(destino.escucharPorAdb)
+
+        // Una copia de la 1.0.0 no trae los campos: no enciende nada por su cuenta.
+        val antigua = CopiaDeAjustes.exportar(conCable, emptyList(), ahora)
+            .replace(Regex(""",\s*"escucharPor(Usb|Adb)": true"""), "")
+        assertFalse(antigua.contains("escucharPor"))
+        val vuelta = (CopiaDeAjustes.leer(antigua, ahora) as CopiaDeAjustes.Lectura.Valida).config(AppConfig())
+        assertFalse(vuelta.escucharPorUsb)
+        assertFalse(vuelta.escucharPorAdb)
+    }
+
+    @Test
     fun `las claves llegan revocadas y con un hash que no es el de ningun secreto conocido`() {
         val lectura = CopiaDeAjustes.leer(CopiaDeAjustes.exportar(config, listOf(clave), ahora), ahora)
             as CopiaDeAjustes.Lectura.Valida
